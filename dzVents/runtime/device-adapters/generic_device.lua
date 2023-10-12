@@ -15,17 +15,18 @@ local function stateToBool(state, _states)
 end
 
 local function setStateAttribute(state, device, _states)
-	local level;
+	local level
 	
 	if (state and string.find(state, 'Open')) then
-		level = 0
+		level =  100
 	end
 	if (state and string.find(state, 'Closed')) then
-		level = 100
+		level =  0
 	end
 	if (state and string.find(state, 'Set Level')) then
 		level = string.match(state, '%d+') -- extract dimming value
 		
+		-- option, set state to 'Set Level' for both ?
 		if (device['switchType'] and string.find(device['switchType'], "Blind")) then
 			state = 'Open' -- consider the blind to be open
 		else
@@ -140,16 +141,16 @@ return {
 
 		function device.setDescription(description)
 			local url = domoticz.settings['Domoticz url'] ..
-				'/json.htm?description=' .. utils.urlEncode(description) ..
+				'/json.htm?type=command&param=setused&description=' .. utils.urlEncode(description) ..
 				'&idx=' .. device.id ..
 				'&name='.. utils.urlEncode(device.name) ..
-				'&type=setused&used=true'
+				'&used=true'
 			return domoticz.openURL(url)
 		end
 
 		function device.setIcon(iconNumber)
 			local url = domoticz.settings['Domoticz url'] ..
-				'/json.htm?type=setused&used=true&name=' ..
+				'/json.htm?type=command&param=setused&used=true&name=' ..
 				 utils.urlEncode(device.name) ..
 				'&description=' .. utils.urlEncode(device.description) ..
 				'&idx=' .. device.id ..
@@ -168,14 +169,14 @@ return {
 
 		function device.protectionOn()
 			local url = domoticz.settings['Domoticz url'] ..
-						'/json.htm?type=setused&used=true&protected=true' ..
+						'/json.htm?type=command&param=setused&used=true&protected=true' ..
 						'&idx=' .. device.idx
 			return domoticz.openURL(url)
 		end
 
 		function device.protectionOff()
 			local url = domoticz.settings['Domoticz url'] ..
-						'/json.htm?type=setused&used=true&protected=false' ..
+						'/json.htm?type=command&param=setused&used=true&protected=false' ..
 						'&idx=' .. device.idx
 			return domoticz.openURL(url)
 		end

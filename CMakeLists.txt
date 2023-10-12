@@ -35,7 +35,6 @@ option(WITH_LIBUSB "Enable libusb support" YES)
 option(USE_LUA_STATIC "Link LUA static" YES)
 option(USE_OPENSSL_STATIC "Link OpenSSL static" NO)
 option(USE_STATIC_BOOST "Build with static BOOST libraries" YES)
-option(USE_STATIC_OPENZWAVE "Build with static OpenZwave libraries" YES)
 
 # Developer-oriented options
 option(USE_PRECOMPILED_HEADER "Use precompiled header feature to speed up build time " YES)
@@ -165,8 +164,12 @@ main/SQLHelper.cpp
 main/SunRiseSet.cpp
 main/TrendCalculator.cpp
 main/WebServer.cpp
+main/WebServerCmds.cpp
+main/WebServerCommands.cpp
+main/WebServerHandleGraph.cpp
 main/WebServerHelper.cpp
 main/WindCalculation.cpp
+iamserver/IamService.cpp
 push/BasePush.cpp
 push/FibaroPush.cpp
 push/GooglePubSubPush.cpp
@@ -182,6 +185,7 @@ hardware/1Wire/1WireCommon.cpp
 hardware/1Wire/1WireForWindows.cpp
 hardware/AccuWeather.cpp
 hardware/AirconWithMe.cpp
+hardware/AlfenEve.cpp
 hardware/AnnaThermostat.cpp
 hardware/Arilux.cpp
 hardware/ASyncSerial.cpp
@@ -214,6 +218,7 @@ hardware/eHouseTCP.cpp
 hardware/eHouse/EhouseEvents.cpp
 hardware/eHouse/EhouseTcpClient.cpp
 hardware/eHouse/EhouseUdpListener.cpp
+hardware/Enever.cpp
 hardware/EnOceanEEP.cpp
 hardware/EnOceanESP2.cpp
 hardware/EnOceanESP3.cpp
@@ -232,7 +237,6 @@ hardware/EvohomeTCP.cpp
 hardware/EvohomeWeb.cpp
 hardware/ETH8020.cpp
 hardware/FritzboxTCP.cpp
-hardware/GoodweAPI.cpp
 hardware/Gpio.cpp
 hardware/GpioPin.cpp
 hardware/HardwareMonitor.cpp
@@ -252,6 +256,7 @@ hardware/Limitless.cpp
 hardware/LogitechMediaServer.cpp
 hardware/Meteorologisk.cpp
 hardware/Meteostick.cpp
+hardware/MitsubishiWF.cpp
 hardware/MochadTCP.cpp
 hardware/MQTT.cpp
 hardware/MQTTAutoDiscover.cpp
@@ -271,9 +276,6 @@ hardware/OpenWeatherMap.cpp
 hardware/OpenWebNetTCP.cpp
 hardware/OpenWebNetUSB.cpp
 hardware/openwebnet/bt_openwebnet.cpp
-hardware/OpenZWave.cpp
-hardware/openzwave/control_panel/ozwcp.cpp
-hardware/openzwave/control_panel/zwavelib.cpp
 hardware/OTGWBase.cpp
 hardware/OTGWSerial.cpp
 hardware/OTGWTCP.cpp
@@ -322,6 +324,7 @@ hardware/ToonThermostat.cpp
 hardware/TTNMQTT.cpp
 hardware/USBtin.cpp
 hardware/USBtin_MultiblocV8.cpp
+hardware/VisualCrossing.cpp
 hardware/VolcraftCO20.cpp
 hardware/Winddelen.cpp
 hardware/WOL.cpp
@@ -333,7 +336,6 @@ hardware/YouLess.cpp
 hardware/ZiBlueBase.cpp
 hardware/ZiBlueSerial.cpp
 hardware/ZiBlueTCP.cpp
-hardware/ZWaveBase.cpp
 hardware/plugins/DelayedLink.cpp
 hardware/plugins/Plugins.cpp
 hardware/plugins/PluginManager.cpp
@@ -513,6 +515,7 @@ set (domoticz_VERSION_PATCH ${ProjectRevision})
 
 # explicitly say that the executable depends on the revisiontag
 add_dependencies(domoticz revisiontag)
+add_dependencies(domoticztester revisiontag)
 
 TEST_BIG_ENDIAN(BIGENDIAN)
 IF(${BIGENDIAN})
@@ -725,39 +728,6 @@ IF(WITH_LIBUSB)
   ENDIF(LIBUSB_FOUND)
 ENDIF(WITH_LIBUSB)
 
-#
-# OpenZWave
-# try to find open-zwave, if found, include support
-#
-IF(USE_STATIC_OPENZWAVE)
-  find_library(OpenZWave NAMES libopenzwave.a HINTS "../open-zwave-read-only" "../open-zwave-read-only/cpp/build")
-  get_filename_component(OpenZWave_dir ${OpenZWave} DIRECTORY)
-  find_path(OPENZWAVE_INCLUDE_DIRS NAMES OZWException.h HINTS "${OpenZWave_dir}/cpp/src")
-  set(OPENZWAVE_LIB ${OpenZWave})
-ELSE()
-  pkg_check_modules(OPENZWAVE libopenzwave)
-  IF(OPENZWAVE_FOUND)
-    MESSAGE(STATUS "==== OpenZWave package found!")
-    find_library(OpenZWave NAMES libopenzwave.so HINTS ${OPENZWAVE_LIBRARY_DIRS})
-    message(STATUS OpenZWave library found at: ${OpenZWave})
-  ENDIF()
-ENDIF()
-IF(OpenZWave)
-  message(STATUS "OpenZWave library found at: ${OpenZWave}")
-  target_link_libraries(domoticz ${OpenZWave})
-
-  find_path(OPENZWAVE_INCLUDE_DIRS NAMES OZWException.h)
-  IF (OPENZWAVE_INCLUDE_DIRS)
-    include_directories(${OPENZWAVE_INCLUDE_DIRS})
-    message(STATUS "OpenZWave includes found at: ${OPENZWAVE_INCLUDE_DIRS}")
-  ELSE()
-    message(FATAL_ERROR "OpenZWave includes not found.")
-  ENDIF (OPENZWAVE_INCLUDE_DIRS)
-  add_definitions(-DWITH_OPENZWAVE)
-ELSE()
-  MESSAGE(STATUS "==== OpenZWave not found, support disabled!")
-ENDIF(OpenZWave)
-
 IF(EXISTS /sys/class/gpio OR FORCE_WITH_GPIO)
   message(STATUS "GPIO is available")
   add_definitions(-DWITH_GPIO)
@@ -847,6 +817,5 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/History.txt DESTINATION ${CMAKE_INSTAL
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/server_cert.pem DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugins DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Config DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dzVents DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/updatedomo DESTINATION ${CMAKE_INSTALL_PREFIX} PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)

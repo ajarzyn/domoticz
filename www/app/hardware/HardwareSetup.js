@@ -7,7 +7,7 @@ define([
     'hardware/setup/PanasonicTV',
     'hardware/setup/Pinger',
     'hardware/setup/WakeOnLan',
-    'hardware/setup/ZWave',
+    'hardware/setup/MQTT-AD',
 ], function (app) {
     app.controller('HardwareSetupController', function ($routeParams, domoticzApi) {
         var vm = this;
@@ -16,7 +16,7 @@ define([
         function init() {
             vm.hardwareId = $routeParams.id;
 
-            domoticzApi.sendRequest({ type: 'hardware' })
+            domoticzApi.sendCommand('gethardware', {})
                 .then(domoticzApi.errorHandler)
                 .then(function (response) {
                     vm.hardware = response.result.find(function (item) {

@@ -24,6 +24,7 @@ enum _eDebugLevel : uint32_t
 	DEBUG_PYTHON = 0x0000020,
 	DEBUG_THREADIDS = 0x0000040,
 	DEBUG_SQL = 0x0000080,
+	DEBUG_AUTH = 0x0000100,
 	//
 	DEBUG_ALL = 0xFFFFFFF
 };
@@ -98,14 +99,14 @@ class CLogger
 	bool NotificationLogsEnabled();
 
       private:
-	uint32_t m_log_flags;
-	uint32_t m_debug_flags;
-	uint8_t m_aclf_flags;
-	uint32_t m_aclf_loggedlinescnt;
+	uint32_t m_log_flags = 0;
+	uint32_t m_debug_flags = 0;
+	uint8_t m_aclf_flags = 0;
+	uint32_t m_aclf_loggedlinescnt = 0;
 
 	std::mutex m_mutex;
 	std::ofstream m_outputfile;
-	const char *m_aclflogfile;
+	const char *m_aclflogfile = nullptr;
 	std::ofstream m_aclfoutputfile;
 	std::map<_eLogLevel, std::deque<_tLogLineStruct>> m_lastlog;
 	std::deque<_tLogLineStruct> m_notification_log;

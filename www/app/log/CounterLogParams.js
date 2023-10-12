@@ -31,6 +31,9 @@ define(['app', 'log/Chart'], function (app) {
                             }
                         },
                         plotOptions: {
+							column: {
+								pointPlacement: 0
+							},
                             series: {
                                 matchExtremes: true
                             }
@@ -71,6 +74,16 @@ define(['app', 'log/Chart'], function (app) {
                             },
                             tickInterval: 24 * 3600 * 1000
                         },
+                        plotOptions: {
+                            column: {
+                                pointPlacement: 0,
+                                stacking: undefined
+                            },
+                            series: {
+                                // colorByPoint: true
+                                stacking: undefined
+                            }
+                        },
                         tooltip: {
                             shared: false,
                             crosshairs: false
@@ -105,7 +118,12 @@ define(['app', 'log/Chart'], function (app) {
                         },
                         tooltip: {
                             crosshairs: false
-                        }
+                        },
+						plotOptions: {
+							column: {
+								pointPlacement: 0
+							}
+						}
                     },
                     ctrl: ctrl,
                     range: ctrl.range,

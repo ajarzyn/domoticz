@@ -307,7 +307,7 @@ define(['app', 'livesocket'], function (app) {
 			htm += '</ul></div>';
 			return htm;
 		}
-
+		
 		RefreshItem = function (item) {
 			var id = "#lightcontent #" + item.idx;
 			if ($(id + " #name").html() === undefined) {
@@ -323,7 +323,7 @@ define(['app', 'livesocket'], function (app) {
 			var img3 = "";
 			var status = "";
 
-			console.log(item);
+			//console.log(item);
 
 			var bigtext = TranslateStatusShort(item.Status);
 			if (item.UsedByCamera == true) {
@@ -497,6 +497,10 @@ define(['app', 'livesocket'], function (app) {
 			else if (item.SwitchType == "Dimmer") {
 				isdimmer = true;
 				if (item.CustomImage == 0) item.Image = item.TypeImg;
+				if (typeof item.Image == 'undefined') {
+					item.CustomImage = 0;
+					item.Image = item.TypeImg;
+				}
 				item.Image = item.Image.charAt(0).toUpperCase() + item.Image.slice(1);
 				if (
 					(item.Status == 'On') ||
@@ -689,14 +693,23 @@ define(['app', 'livesocket'], function (app) {
 			if ($(id + " #lastupdate").html() != item.LastUpdate) {
 				$(id + " #lastupdate").html(item.LastUpdate);
 			}
-			if ($scope.config.ShowUpdatedEffect == true) {
-				$(id + " #name").effect("highlight", { color: '#EEFFEE' }, 1000);
+
+			var searchText = GenerateLiveSearchTextL(item, bigtext);
+			$(id).find('#name').attr('data-search', searchText);
+			
+			if (!document.hidden) {
+				if ($scope.config.ShowUpdatedEffect == true) {
+					$(id + " #name").effect("highlight", { color: '#EEFFEE' }, 1000);
+				}
 			}
+			
+			RefreshLiveSearch();
 		}
 
 		//We only call this once. After this the widgets are being updated automatically by used of the 'jsonupdate' broadcast event.
 		RefreshLights = function () {
-			livesocket.getJson("json.htm?type=devices&filter=light&used=true&order=[Order]&lastupdate=" + $.LastUpdateTime + "&plan=" + window.myglobals.LastPlanSelected, function (data) {
+			var roomPlanId = $routeParams.room || window.myglobals.LastPlanSelected;
+			livesocket.getJson("json.htm?type=command&param=getdevices&filter=light&used=true&order=[Order]&lastupdate=" + $.LastUpdateTime + "&plan=" + roomPlanId, function (data) {
 				if (typeof data.ServerTime != 'undefined') {
 					$rootScope.SetTimeAndSun(data.Sunrise, data.Sunset, data.ServerTime);
 				}
@@ -721,73 +734,17 @@ define(['app', 'livesocket'], function (app) {
 			$('#modal').show();
 
 			var htmlcontent = '';
-			var bShowRoomplan = false;
-			$.RoomPlans = [];
-			$.ajax({
-				url: "json.htm?type=plans",
-				async: false,
-				dataType: 'json',
-				success: function (data) {
-					if (typeof data.result != 'undefined') {
-						var totalItems = data.result.length;
-						if (totalItems > 0) {
-							bShowRoomplan = true;
-							//				if (window.myglobals.ismobile==true) {
-							//				bShowRoomplan=false;
-							//		}
-							if (bShowRoomplan == true) {
-								$.each(data.result, function (i, item) {
-									$.RoomPlans.push({
-										idx: item.idx,
-										name: item.Name
-									});
-								});
-							}
-						}
-					}
-				}
-			});
-
+	
 			var bHaveAddedDevider = false;
 
 			var tophtm = "";
-			if ($.RoomPlans.length == 0) {
-				tophtm +=
-					'\t<table border="0" cellpadding="0" cellspacing="0" width="100%">\n' +
-					'\t<tr>\n' +
-					'\t  <td align="left" valign="top" id="timesun"></td>\n' +
-					'\t</tr>\n' +
-					'\t</table>\n';
-			}
-			else {
-				tophtm +=
-					'\t<table border="0" cellpadding="0" cellspacing="0" width="100%">\n' +
-					'\t<tr>\n' +
-					'\t  <td align="left" valign="top" id="timesun"></td>\n' +
-					'<td align="right" valign="top">' +
-					'<span data-i18n="Room">Room</span>:&nbsp;<select id="comboroom" style="width:160px" class="combobox ui-corner-all">' +
-					'<option value="0" data-i18n="All">All</option>' +
-					'</select>' +
-					'</td>' +
-					'\t</tr>\n' +
-					'\t</table>\n';
-			}
-			if (permissions.hasPermission("Admin")) {
-				tophtm +=
-					'\t<table class="bannav" id="bannav" border="0" cellpadding="0" cellspacing="0" width="100%">\n' +
-					'\t<tr>\n' +
-					'\t  <td align="left"><a class="btnstylerev" onclick="AddManualLightDevice();" data-i18n="Manual Light/Switch">Manual Light/Switch</a></td>\n' +
-					'\t  <td align="right"><a class="btnstyle" onclick="AddLightDevice();" data-i18n="Learn Light/Switch">Learn Light/Switch</a></td>\n' +
-					'\t</tr>\n' +
-					'\t</table>\n';
-			}
 
 			var i = 0;
 			var j = 0;
 			var roomPlanId = $routeParams.room || window.myglobals.LastPlanSelected;
 
 			$.ajax({
-				url: "json.htm?type=devices&filter=light&used=true&order=[Order]&plan=" + roomPlanId,
+				url: "json.htm?type=command&param=getdevices&filter=light&used=true&order=[Order]&plan=" + roomPlanId,
 				async: false,
 				dataType: 'json',
 				success: function (data) {
@@ -817,7 +774,7 @@ define(['app', 'livesocket'], function (app) {
 
 							var status = "";
 							var xhtm =
-								'\t<div class="item span4 ' + backgroundClass + '" id="' + item.idx + '">\n' +
+								'\t<div class="item span4 itemBlock ' + backgroundClass + '" id="' + item.idx + '">\n' +
 								'\t  <section>\n';
 							if (
 								(item.SwitchType.indexOf("Blinds")>=0)
@@ -841,7 +798,6 @@ define(['app', 'livesocket'], function (app) {
 									|| (item.SubType.indexOf('Confexx') == 0)
 									|| (item.SwitchType.indexOf("Venetian Blinds") == 0)
 									|| (item.SwitchType == "Blinds + Stop")
-									|| (item.SwitchType == "Blinds Inverted + Stop")
 								) {
 									xhtm += '\t    <table id="itemtabletrippleicon" border="0" cellpadding="0" cellspacing="0">\n';
 								}
@@ -853,14 +809,18 @@ define(['app', 'livesocket'], function (app) {
 								xhtm += '\t    <table id="itemtablenostatus" border="0" cellpadding="0" cellspacing="0">\n';
 							}
 
-							xhtm +=
-								'\t    <tr>\n' +
-								'\t      <td id="name">' + item.Name + '</td>\n' +
-								'\t      <td id="bigtext">';
 							var bigtext = TranslateStatusShort(item.Status);
 							if (item.SwitchType === "Selector" || item.SubType == "Evohome") {
 								bigtext = GetLightStatusText(item);
 							}
+							
+							var searchText = GenerateLiveSearchTextL(item, bigtext);
+
+							xhtm +=
+								'\t    <tr>\n' +
+								'\t      <td id="name" class="item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'" data-search="'+searchText+'">' + item.Name +'</td>\n' +
+								'\t      <td id="bigtext">';
+
 							if (item.UsedByCamera == true) {
 								var streamimg = '<img src="images/webcam.png" title="' + $.t('Stream Video') + '" height="16" width="16">';
 								var streamurl = "<a href=\"javascript:ShowCameraLiveStream('" + escape(item.Name) + "'," + item.CameraIdx + "," + item.CameraAspect + ")\">" + streamimg + "</a>";
@@ -1058,6 +1018,10 @@ define(['app', 'livesocket'], function (app) {
 							else if (item.SwitchType == "Dimmer") {
 								bIsDimmer = true;
 								if (item.CustomImage == 0) item.Image = item.TypeImg;
+								if (typeof item.Image == 'undefined') {
+									item.CustomImage = 0;
+									item.Image = item.TypeImg;
+								}
 								item.Image = item.Image.charAt(0).toUpperCase() + item.Image.slice(1);
 								if (
 									(item.Status == 'On') ||
@@ -1137,18 +1101,18 @@ define(['app', 'livesocket'], function (app) {
 							}
 							else if (item.SubType.indexOf("Itho") == 0) {
 								bAddTimer = false;
-								xhtm += '\t      <td id="img"><img src="images/Fan48_On.png" height="48" width="48" class="lcursor" onclick="ShowIthoPopup(event, ' + item.idx + ', ShowLights, ' + item.Protected + ');"></td>\n';
+								xhtm += '\t      <td id="img"><img src="images/Fan48_On.png" height="48" width="48" class="lcursor" onclick="ShowIthoPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + window.myglobals.ismobile + ');"></td>\n';
 							}
 							else if (item.SubType.indexOf("Lucci Air DC") == 0) {
 								bAddTimer = false;
-								xhtm += '\t      <td id="img"><img src="images/Fan48_On.png" height="48" width="48" class="lcursor" onclick="ShowLucciDCPopup(event, ' + item.idx + ', ShowLights, ' + item.Protected + ');"></td>\n';
+								xhtm += '\t      <td id="img"><img src="images/Fan48_On.png" height="48" width="48" class="lcursor" onclick="ShowLucciDCPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + window.myglobals.ismobile + ');"></td>\n';
 							}
 							else if (
 								(item.SubType.indexOf("Lucci") == 0) ||
 								(item.SubType.indexOf("Westinghouse") == 0)
 							) {
 								bAddTimer = false;
-								xhtm += '\t      <td id="img"><img src="images/Fan48_On.png" height="48" width="48" class="lcursor" onclick="ShowLucciPopup(event, ' + item.idx + ', ShowLights, ' + item.Protected + ');"></td>\n';
+								xhtm += '\t      <td id="img"><img src="images/Fan48_On.png" height="48" width="48" class="lcursor" onclick="ShowLucciPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + window.myglobals.ismobile + ');"></td>\n';
 							}
 							else {
 								if (
@@ -1197,14 +1161,8 @@ define(['app', 'livesocket'], function (app) {
 							else if (item.SwitchType == "Blinds Percentage") {
 								xhtm += '<br><div style="margin-left:108px; margin-top:7px;" class="dimslider dimsmall" id="slider" data-idx="' + item.idx + '" data-type="blinds" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div>';
 							}
-							else if (item.SwitchType == "Blinds Percentage Inverted") {
-								xhtm += '<br><div style="margin-left:108px; margin-top:7px;" class="dimslider dimsmall" id="slider" data-idx="' + item.idx + '" data-type="blinds_inv" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div>';
-							}
 							else if (item.SwitchType == "Blinds + Stop") {
 								xhtm += '<br><div style="margin-left:132px; margin-top:12px;" class="dimslider dimsmall3" id="slider" data-idx="' + item.idx + '" data-type="blinds" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div>';
-							}
-							else if (item.SwitchType == "Blinds Inverted + Stop") {
-								xhtm += '<br><div style="margin-left:132px; margin-top:12px;" class="dimslider dimsmall3" id="slider" data-idx="' + item.idx + '" data-type="blinds_inv" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div>';
 							}
 							else if (item.SwitchType == "Selector") {
 								if (item.SelectorStyle === 0) {
@@ -1291,6 +1249,8 @@ define(['app', 'livesocket'], function (app) {
 					}
 				}
 			});
+
+
 			if (bHaveAddedDevider == true) {
 				//close previous devider
 				htmlcontent += '</div>\n';
@@ -1301,29 +1261,10 @@ define(['app', 'livesocket'], function (app) {
 			$('#modal').hide();
 			$element.html(tophtm + htmlcontent);
 			$element.i18n();
-			if (bShowRoomplan == true) {
-				$.each($.RoomPlans, function (i, item) {
-					var option = $('<option />');
-					option.attr('value', item.idx).text(item.name);
-					$element.find("#comboroom").append(option);
-				});
-				if (typeof roomPlanId != 'undefined') {
-					$element.find("#comboroom").val(roomPlanId);
-				}
-				$element.find("#comboroom").change(function () {
-					var idx = $element.find("#comboroom option:selected").val();
-					window.myglobals.LastPlanSelected = idx;
-
-					$route.updateParams({
-						room: idx > 0 ? idx : undefined
-					});
-					$location.replace();
-					$scope.$apply();
-				});
-			}
+			WatchDescriptions();
 
 			if ($scope.config.AllowWidgetOrdering == true) {
-				if (permissions.hasPermission("Admin")) {
+				if (permissions.hasPermission("User")) {
 					if (window.myglobals.ismobileint == false) {
 						$element.find(".span4").draggable({
 							drag: function () {
@@ -1335,10 +1276,7 @@ define(['app', 'livesocket'], function (app) {
 						$element.find(".span4").droppable({
 							drop: function () {
 								var myid = $(this).attr("id");
-								var roomid = $element.find("#comboroom option:selected").val();
-								if (typeof roomid == 'undefined') {
-									roomid = 0;
-								}
+								var roomid = window.myglobals.LastPlanSelected;
 								$.ajax({
 									url: "json.htm?type=command&param=switchdeviceorder&idx1=" + myid + "&idx2=" + $.devIdx + "&roomid=" + roomid,
 									async: false,
@@ -1353,6 +1291,7 @@ define(['app', 'livesocket'], function (app) {
 				}
 			}
 			$rootScope.RefreshTimeAndSun();
+
 
 			//Create Dimmer Sliders
 			$element.find('.dimslider').slider({
@@ -1390,21 +1329,13 @@ define(['app', 'livesocket'], function (app) {
 						var bigtext;
 						if (fPercentage == 0) {
 							img = '<img src="images/' + imgname + 'ff.png" title="' + $.t("Turn On") + '" onclick="SwitchLight(' + idx + ',\'On\',' + isProtected + ');" class="lcursor" height="48" width="48">';
-							if (dtype == "blinds") {
-								bigtext = "Open";
-							}
-							else if (dtype == "blinds_inv") {
-								bigtext = "Closed";
-							}
-							else {
-								bigtext = "Off";
-							}
+							bigtext = fPercentage + " %";
 						}
 						else {
 							img = '<img src="images/' + imgname + 'n.png" title="' + $.t("Turn Off") + '" onclick="SwitchLight(' + idx + ',\'Off\',' + isProtected + ');" class="lcursor" height="48" width="48">';
 							bigtext = fPercentage + " %";
 						}
-						if ((dtype != "blinds") && (dtype != "blinds_inv") && !isled) {
+						if ((dtype != "blinds") && !isled) {
 							if ($(id + " #img").html() != img) {
 								$(id + " #img").html(img);
 							}
@@ -1428,7 +1359,7 @@ define(['app', 'livesocket'], function (app) {
 			//Create Selector selectmenu
 			$element.find('.selectorlevels select').selectmenu({
 				//Config
-				width: '75%',
+				width: false,	// prevents inline width
 				value: 0,
 				//Selector selectmenu events
 				create: function (event, ui) {
@@ -1806,7 +1737,7 @@ define(['app', 'livesocket'], function (app) {
 				$("#dialog-addmanuallightdevice #lighting3params").hide();
 				$("#dialog-addmanuallightdevice #homeconfortparams").show();
 			}
-			else if ((lighttype >= 304) && (lighttype <= 313)) {
+			else if ((lighttype >= 304) && (lighttype <= 315)) {
 				//Fan (Itho)
 				$("#dialog-addmanuallightdevice #lighting1params").hide();
 				$("#dialog-addmanuallightdevice #lighting2params").hide();
@@ -2066,7 +1997,7 @@ define(['app', 'livesocket'], function (app) {
 				mParams += "&housecode=" + $("#dialog-addmanuallightdevice #homeconfortparams #combohousecode option:selected").val();
 				mParams += "&unitcode=" + $("#dialog-addmanuallightdevice #homeconfortparams #combounitcode option:selected").val();
 			}
-			else if ((lighttype >= 304) && (lighttype <= 313)) {
+			else if ((lighttype >= 304) && (lighttype <= 315)) {
 				//Fan
 				ID =
 					$("#dialog-addmanuallightdevice #fanparams #combocmd1 option:selected").text() +
@@ -2272,10 +2203,31 @@ define(['app', 'livesocket'], function (app) {
 				$.myglobals.WeekdayStr.push($(this).text());
 			});
 
+			//Get SwitchTypes
+			$.ajax({
+				url: "json.htm?type=command&param=getswitchtypes",
+				async: false,
+				dataType: 'json',
+				success: function (data) {
+					if (typeof data.result != 'undefined') {
+						$("#dialog-addlightdevice #comboswitchtype").html("");
+						$("#dialog-addmanuallightdevice #comboswitchtype").html("");
+						$.each(data.result, function (stcode, stdesc) {
+							if (stdesc != null) {
+								var option = $('<option />');
+								option.attr('value', stcode).text(stdesc);
+								$("#dialog-addlightdevice #comboswitchtype").append(option);
+								$("#dialog-addmanuallightdevice #comboswitchtype").append(option);
+							}
+						});
+					}
+				}
+			});
+
 			$scope.$on('device_update', function (event, deviceData) {
 				RefreshItem(deviceData);
 			});
-
+	
 			$(window).resize(function () { $scope.ResizeDimSliders(); });
 
 			$("#dialog-addlightdevice").dialog({
@@ -2302,7 +2254,7 @@ define(['app', 'livesocket'], function (app) {
 						if (bValid) {
 							$(this).dialog("close");
 							$.ajax({
-								url: "json.htm?type=setused&idx=" + $.devIdx + '&name=' + encodeURIComponent($("#dialog-addlightdevice #devicename").val()) + '&switchtype=' + $("#dialog-addlightdevice #comboswitchtype").val() + '&used=true&maindeviceidx=' + MainDeviceIdx,
+								url: "json.htm?type=command&param=setused&idx=" + $.devIdx + '&name=' + encodeURIComponent($("#dialog-addlightdevice #devicename").val()) + '&switchtype=' + $("#dialog-addlightdevice #comboswitchtype").val() + '&used=true&maindeviceidx=' + MainDeviceIdx,
 								async: false,
 								dataType: 'json',
 								success: function (data) {
@@ -2403,8 +2355,54 @@ define(['app', 'livesocket'], function (app) {
 				EnableDisableSubDevices("#dialog-addmanuallightdevice #howtable #subdevice", true);
 			});
 
+
+
+			//handles TopBar Links
+			$scope.tblinks=[];
+			if (permissions.hasPermission("Admin")) {
+				$scope.tblinks = [
+					{
+						onclick:"AddLightDevice", 
+						text: "Learn Light/Switch",
+						i18n: "Learn Light/Switch", 
+						icon: "camera"
+					},
+					{
+						onclick:"AddManualLightDevice", 
+						text: "Manual Light/Switch",
+						i18n: "Manual Light/Switch", 
+						icon: "plus-circle"
+					}
+				];
+			}
+
+			//handles RoomPlans
+			var ctrl={};
+			ctrl.RoomPlans=$rootScope.GetRoomPlans();	
+			var roomPlanId = $routeParams.room || window.myglobals.LastPlanSelected;
+	
+			if (typeof roomPlanId != 'undefined') {
+				ctrl.roomSelected = roomPlanId;
+				window.myglobals.LastPlanSelected = roomPlanId;
+			}
+			ctrl.changeRoom = function () {
+				var idx = ctrl.roomSelected;
+				window.myglobals.LastPlanSelected = idx;
+	
+				$route.updateParams({
+						room: idx > 0 ? idx : undefined
+					});
+					$location.replace();
+					$scope.$apply();
+			};
+			$scope.ctrl=ctrl;
+
 			ShowLights();
+
 		};
+
+
+
 
 		$scope.$on('$destroy', function () {
 			$(window).off("resize");

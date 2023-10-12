@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <time.h>
 #include <algorithm>
-#include "localtime_r.h"
 #include "Helper.h"
 #include "mainworker.h"
 
@@ -90,7 +89,7 @@ void CLogger::SetLogFlags(const uint32_t iFlags)
 	m_log_flags = iFlags;
 }
 
-// Supported flags: all,normal,hardware,received,webserver,eventsystem,python,thread_id,sql
+// Supported flags: all,normal,hardware,received,webserver,eventsystem,python,thread_id,sql,auth
 bool CLogger::SetDebugFlags(const std::string &sFlags)
 {
 	std::vector<std::string> flags;
@@ -127,14 +126,19 @@ bool CLogger::SetDebugFlags(const std::string &sFlags)
 			iFlags |= DEBUG_THREADIDS;
 		else if (wflag == "sql")
 			iFlags |= DEBUG_SQL;
+		else if (wflag == "auth")
+			iFlags |= DEBUG_AUTH;
 		else
 			continue; // invalid flag, skip but continue processing the other flags
 	}
 	SetDebugFlags(iFlags);
+	if (iFlags && !IsLogLevelEnabled(LOG_DEBUG_INT))
+	{
+		m_log_flags |= LOG_DEBUG_INT;
+		Log(LOG_STATUS, "Enabling Debug logging!");
+	}
 	if(IsDebugLevelEnabled(DEBUG_WEBSERVER))
 		SetACLFlogFlags(LOG_ACLF_ENABLED);
-	if(!IsLogLevelEnabled(LOG_DEBUG_INT))
-		Log(LOG_STATUS,"Debug logging not active. Set loglevel DEBUG when using debug logging!");
 	return true;
 }
 
@@ -419,7 +423,7 @@ void CLogger::LogSequenceEnd(const _eLogLevel level)
 	std::string message = m_sequencestring.str();
 	if (strhasEnding(message, "\n"))
 	{
-		message = message.substr(0, message.size() - 1);
+		message.resize(message.size() - 1);
 	}
 
 	Log(level, message);
@@ -455,7 +459,7 @@ bool CLogger::IsLogTimestampsEnabled()
 	return (m_bEnableLogTimestamps && !g_bUseSyslog);
 }
 
-bool compareLogByTime(const CLogger::_tLogLineStruct &a, CLogger::_tLogLineStruct &b)
+bool compareLogByTime(const CLogger::_tLogLineStruct &a, const CLogger::_tLogLineStruct &b)
 {
 	return a.logtime < b.logtime;
 }

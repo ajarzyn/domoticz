@@ -20,7 +20,6 @@ License: Public domain
 #include "../main/Logger.h"
 #include "../main/Helper.h"
 #include "../main/SQLHelper.h"
-#include "../main/localtime_r.h"
 #include "csocket.h"
 
 #include <string.h>
@@ -856,7 +855,7 @@ void COpenWebNetTCP::UpdateBlinds(const int who, const int where, const int Comm
 	{
 		nvalue = 0;
 		slevel = 0;
-		switch_type = (iLevel < 0) ? STYPE_VenetianBlindsEU : STYPE_BlindsPercentageInverted;
+		switch_type = (iLevel < 0) ? STYPE_VenetianBlindsEU : STYPE_BlindsPercentage;
 		m_sql.InsertDevice(m_HwdID, szIdx, iInterface, pTypeGeneralSwitch, sSwitchTypeAC, switch_type, 0, "", devname);
 	}
 	else
@@ -866,7 +865,11 @@ void COpenWebNetTCP::UpdateBlinds(const int who, const int where, const int Comm
 		switch_type = atoi(result[0][3].c_str());
 	}
 
-	if ((switch_type == STYPE_BlindsPercentageInverted) && (iLevel < 0)) return; // check normal frame received for BlindsPercentageInverted
+	if (
+		(switch_type == STYPE_BlindsPercentage)
+		&& (iLevel < 0)
+		)
+		return;
 
 	int cmd = -1;
 	switch (Command)
@@ -904,7 +907,7 @@ void COpenWebNetTCP::UpdateBlinds(const int who, const int where, const int Comm
 	}
 
 	// verify command for advanced type
-	if (switch_type == STYPE_BlindsPercentageInverted)
+	if (switch_type == STYPE_BlindsPercentage)
 	{
 		cmd = (iLevel == 0) ? gswitch_sOff : gswitch_sSetLevel;
 	}
@@ -1801,8 +1804,9 @@ bool COpenWebNetTCP::WriteToHardware(const char *pdata, const unsigned char leng
 		case WHO_AUTOMATION:
 			//Blinds/Window command
 			sprintf(szIdx, "%08X", ((who << 16) & 0xffff0000) | (where & 0x0000ffff));
-			result = m_sql.safe_query("SELECT nValue FROM DeviceStatus WHERE (HardwareID==%d) AND (DeviceID=='%s') AND (SwitchType==%d)",  //*******is there a better method for get
-				m_HwdID, szIdx, STYPE_BlindsPercentageInverted);																		   //*******SUBtype (STYPE_BlindsPercentageInverted) ??
+			result = m_sql.safe_query(
+				"SELECT nValue FROM DeviceStatus WHERE (HardwareID==%d) AND (DeviceID=='%s') AND (SwitchType==%d)",
+				m_HwdID, szIdx, STYPE_BlindsPercentage);
 
 			if (result.empty())// from a normal button
 			{
@@ -2190,10 +2194,21 @@ void COpenWebNetTCP::requestEnergyTotalizer()
 	whoStr << WHO_ENERGY_MANAGEMENT;
 	dimensionStr << ENERGY_MANAGEMENT_DIMENSION_ENERGY_TOTALIZER;
 
-	for (int where = WHERE_ENERGY_1; where < MAX_WHERE_ENERGY; where++)
+	/** request for the energy totalizer of the central units **/
+	for (int where = WHERE_ENERGY_CU_1; where < MAX_WHERE_ENERGY_CU; where++)
 	{
 		std::stringstream whereStr;
 		whereStr << where;
+		request.CreateDimensionMsgOpen(whoStr.str(), whereStr.str(), dimensionStr.str());
+		sendCommand(request, responses, 0, true);
+	}
+	
+	/** request for the energy totalizer of the actuators **/
+	for (int where = WHERE_ENERGY_A_1; where < MAX_WHERE_ENERGY_A; where++)
+	{
+		std::stringstream whereStr;
+		whereStr << where;
+		whereStr << "#0";
 		request.CreateDimensionMsgOpen(whoStr.str(), whereStr.str(), dimensionStr.str());
 		sendCommand(request, responses, 0, true);
 	}
@@ -2218,10 +2233,21 @@ void COpenWebNetTCP::requestAutomaticUpdatePower(int time)
 	appStr << time;
 	value.push_back(appStr.str());
 
-	for (int where = WHERE_ENERGY_1; where < MAX_WHERE_ENERGY; where++)
+	/** request for the automatic update power of the central units **/
+	for (int where = WHERE_ENERGY_CU_1; where < MAX_WHERE_ENERGY_CU; where++)
 	{
 		std::stringstream whereStr;
 		whereStr << where;
+		request.CreateWrDimensionMsgOpen2(whoStr.str(), whereStr.str(), dimensionStr.str(), value);
+		sendCommand(request, responses, 0, true);
+	}
+
+	/** request for the automatic update power of the actuators **/
+	for (int where = WHERE_ENERGY_A_1; where < MAX_WHERE_ENERGY_A; where++)
+	{
+		std::stringstream whereStr;
+		whereStr << where;
+		whereStr << "#0";
 		request.CreateWrDimensionMsgOpen2(whoStr.str(), whereStr.str(), dimensionStr.str(), value);
 		sendCommand(request, responses, 0, true);
 	}

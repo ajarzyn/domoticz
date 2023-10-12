@@ -5,7 +5,6 @@
 #include "../main/Helper.h"
 #include "../main/RFXtrx.h"
 #include "hardwaretypes.h"
-#include "../main/localtime_r.h"
 #include "../main/SQLHelper.h"
 
 #include "../main/mainworker.h"
@@ -145,8 +144,8 @@ const _tRFLinkStringIntHelper rfswitchcommands[] =
 	{ "ALLOFF", gswitch_sGroupOff },
 	{ "DIM", gswitch_sDim },
 	{ "BRIGHT", gswitch_sBright },
-	{ "UP", blinds_sOpen },
-	{ "DOWN", blinds_sClose },
+	{ "UP", gswitch_sOpen },
+	{ "DOWN", gswitch_sClose },
 	{ "STOP", gswitch_sStop },
 	{ "COLOR", gswitch_sColor },
 	{ "DISCO+", gswitch_sDiscop },
@@ -294,15 +293,22 @@ bool CRFLinkBase::WriteToHardware(const char *pdata, const unsigned char length)
 	if (pSwitch->type == pTypeGeneralSwitch) {
 		std::string switchcmnd = GetGeneralRFLinkFromInt(rfswitchcommands, pSwitch->cmnd);
 		if (pSwitch->cmnd != gswitch_sStop) {
-			if ((m_SwitchType == STYPE_VenetianBlindsEU) || (m_SwitchType == STYPE_Blinds) || (m_SwitchType == STYPE_BlindsInverted)) {
+			if (
+				(m_SwitchType == STYPE_VenetianBlindsEU)
+				|| (m_SwitchType == STYPE_Blinds)
+				)
+			{
 				switchcmnd = GetGeneralRFLinkFromInt(rfblindcommands, pSwitch->cmnd);
 			}
-			else {
-				if (m_SwitchType == STYPE_VenetianBlindsUS) {
-				//if ((m_SwitchType == STYPE_VenetianBlindsUS) || (m_SwitchType == STYPE_BlindsInverted)) {
+			else
+			{
+				if (m_SwitchType == STYPE_VenetianBlindsUS)
+				{
 					switchcmnd = GetGeneralRFLinkFromInt(rfblindcommands, pSwitch->cmnd);
-					if (pSwitch->cmnd == blinds_sOpen) switchcmnd = GetGeneralRFLinkFromInt(rfblindcommands, blinds_sClose);
-					else if (pSwitch->cmnd == blinds_sClose) switchcmnd = GetGeneralRFLinkFromInt(rfblindcommands, blinds_sOpen);
+					if (pSwitch->cmnd == blinds_sOpen)
+						switchcmnd = GetGeneralRFLinkFromInt(rfblindcommands, blinds_sClose);
+					else if (pSwitch->cmnd == blinds_sClose)
+						switchcmnd = GetGeneralRFLinkFromInt(rfblindcommands, blinds_sOpen);
 				}
 			}
 		}
@@ -1157,7 +1163,7 @@ bool CRFLinkBase::ParseLine(const std::string &sLine)
 //Webserver helpers
 namespace http {
 	namespace server {
-		void CWebServer::RType_CreateRFLinkDevice(WebEmSession & session, const request& req, Json::Value &root)
+		void CWebServer::Cmd_CreateRFLinkDevice(WebEmSession & session, const request& req, Json::Value &root)
 		{
 			if (session.rights != 2)
 			{
@@ -1166,7 +1172,7 @@ namespace http {
 			}
 
 			std::string idx = request::findValue(&req, "idx");
-			std::string scommand = request::findValue(&req, "command");
+			std::string scommand = request::findValue(&req, "rflcommand");
 			if (idx.empty() || scommand.empty())
 			{
 				return;

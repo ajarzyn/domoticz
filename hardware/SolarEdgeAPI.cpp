@@ -4,7 +4,6 @@
 #include "../main/Logger.h"
 #include "../httpclient/UrlEncode.h"
 #include "hardwaretypes.h"
-#include "../main/localtime_r.h"
 #include "../httpclient/HTTPClient.h"
 #include "../main/json_helper.h"
 #include "../main/RFXtrx.h"
@@ -15,7 +14,7 @@
 #define SE_POWERLIMIT 21
 #define SE_GROUND_RES 22
 #define SE_INV_MODE 23
-#define SE_AC_FREQ 24
+#define SE_AC_CURRENT 24
 #define SE_DATE 25
 
 #ifdef _DEBUG
@@ -148,9 +147,13 @@ bool SolarEdgeAPI::GetSite()
 #ifdef DEBUG_SolarEdgeAPIR_SITE
 	sResult = ReadFile("E:\\SolarEdge_sites.json");
 #else
+
+	std::vector<std::string> ExtraHeaders;
+	ExtraHeaders.push_back("Accept: application/json");
+
 	std::stringstream sURL;
-	sURL << "https://monitoringapi.solaredge.com/sites/list?size=1&api_key=" << m_APIKey << "&format=application/json";
-	if (!HTTPClient::GET(sURL.str(), sResult))
+	sURL << "https://monitoringapi.solaredge.com/sites/list.json?size=1&api_key=" << m_APIKey;
+	if (!HTTPClient::GET(sURL.str(), ExtraHeaders, sResult))
 	{
 		Log(LOG_ERROR, "Error getting http data (Sites)!");
 		return false;
@@ -198,9 +201,13 @@ void SolarEdgeAPI::GetInverters()
 #ifdef DEBUG_SolarEdgeAPIR_INVERTERS
 	sResult = ReadFile("E:\\SolarEdge_inverters.json");
 #else
+
+	std::vector<std::string> ExtraHeaders;
+	ExtraHeaders.push_back("Accept: application/json");
+
 	std::stringstream sURL;
-	sURL << "https://monitoringapi.solaredge.com/equipment/" << m_SiteID << "/list?api_key=" << m_APIKey << "&format=application/json";
-	if (!HTTPClient::GET(sURL.str(), sResult))
+	sURL << "https://monitoringapi.solaredge.com/equipment/" << m_SiteID << "/list.json?api_key=" << m_APIKey;
+	if (!HTTPClient::GET(sURL.str(), ExtraHeaders, sResult))
 	{
 		Log(LOG_ERROR, "Error getting http data (Equipment)!");
 		return;
@@ -295,9 +302,13 @@ void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings* pInverterSetting
 
 	sprintf(szTmp, "%04d-%02d-%02d %02d:%02d:%02d", ltime.tm_year + 1900, ltime.tm_mon + 1, ltime.tm_mday, ltime.tm_hour, ltime.tm_min, ltime.tm_sec);
 	std::string endDate = CURLEncode::URLEncode(szTmp);
+
+	std::vector<std::string> ExtraHeaders;
+	ExtraHeaders.push_back("Accept: application/json");
+
 	std::stringstream sURL;
-	sURL << "https://monitoringapi.solaredge.com/equipment/" << m_SiteID << "/" << pInverterSettings->SN << "/data.json?startTime=" << startDate << "&endTime=" << endDate << "&api_key=" << m_APIKey << "&format=application/json";
-	if (!HTTPClient::GET(sURL.str(), sResult))
+	sURL << "https://monitoringapi.solaredge.com/equipment/" << m_SiteID << "/" << pInverterSettings->SN << "/data.json?startTime=" << startDate << "&endTime=" << endDate << "&api_key=" << m_APIKey;
+	if (!HTTPClient::GET(sURL.str(), ExtraHeaders, sResult))
 	{
 		Log(LOG_ERROR, "Error getting http data (Equipment details)!");
 		return;
@@ -367,17 +378,13 @@ void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings* pInverterSetting
 	}
 	if (!reading["inverterMode"].empty())
 	{
-		char inverterMode[25];
-		strncpy(inverterMode, reading["inverterMode"].asCString(), 24);
 		sprintf(szTmp, "inverterMode %s", pInverterSettings->name.c_str());
-		SendTextSensor(iInverterNumber, SE_INV_MODE, 255, inverterMode, szTmp);
+		SendTextSensor(iInverterNumber, SE_INV_MODE, 255, reading["inverterMode"].asString(), szTmp);
 	}
 	if (!reading["date"].empty())
 	{
-		char date[20];
-		strncpy(date, reading["date"].asCString(), 19);
 		sprintf(szTmp, "date %s", pInverterSettings->name.c_str());
-		SendTextSensor(iInverterNumber, SE_DATE, 255, date, szTmp);
+		SendTextSensor(iInverterNumber, SE_DATE, 255, reading["date"].asString(), szTmp);
 	}
 	if (!reading["temperature"].empty())
 	{
@@ -409,7 +416,7 @@ void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings* pInverterSetting
 			{
 				float acCurrent = reading[szPhase]["acCurrent"].asFloat();
 				sprintf(szTmp, "acCurrent L%d %s", iPhase, pInverterSettings->name.c_str());
-				SendCustomSensor(iInverterNumber, SE_AC_FREQ, 255, acCurrent, szTmp, "A");
+				SendCustomSensor(iInverterNumber, SE_AC_CURRENT + ii, 255, acCurrent, szTmp, "A");
 			}
 
 			if (!reading[szPhase]["activePower"].empty())

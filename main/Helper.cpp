@@ -16,9 +16,9 @@
 #include <fstream>
 #include <math.h>
 #include <algorithm>
-#include "../main/localtime_r.h"
 #include <sstream>
 #include <openssl/evp.h>
+#include <openssl/sha.h>
 #include <chrono>
 #include <limits.h>
 #include <cstring>
@@ -116,6 +116,16 @@ unsigned int Crc32(unsigned int crc, const uint8_t* buf, size_t size)
 	return crc ^ ~0U;
 }
 
+uint8_t Crc8_strMQ(uint8_t crc, const uint8_t* buf, size_t size)
+{
+	crc = 0xff;
+	if (buf == NULL)
+		return crc;
+	while (size--)
+		crc += *buf++;
+	return crc;
+}
+
 void StringSplit(std::string str, const std::string &delim, std::vector<std::string> &results)
 {
 	results.clear();
@@ -184,6 +194,11 @@ void stdreplace(
 		inoutstring.replace(pos, replaceWhat.size(), replaceWithWhat);
 		pos += replaceWithWhat.size();
 	}
+}
+
+bool std_ends_with(const std::string& str, const std::string& suffix)
+{
+	return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
 }
 
 void stdupper(std::string &inoutstring)
@@ -745,8 +760,8 @@ double ConvertToFahrenheit(const double Celsius)
 
 double RoundDouble(const long double invalue, const short numberOfPrecisions)
 {
-	long long p = (long long) pow(10.0L, numberOfPrecisions);
-	double ret= (long long)(invalue * p + 0.5L) / (double)p;
+	int64_t p = (int64_t) pow(10.0L, numberOfPrecisions);
+	double ret= (int64_t)(invalue * p + 0.5L) / (double)p;
 	return ret;
 }
 
@@ -989,10 +1004,10 @@ void padLeft(std::string &str, const size_t num, const char paddingChar)
 		str.insert(0, num - str.size(), paddingChar);
 }
 
-bool IsLightOrSwitch(const int devType, const int subType)
+bool IsLightOrSwitch(const int dType, const int dSubType)
 {
 	bool bIsLightSwitch = false;
-	switch (devType)
+	switch (dType)
 	{
 	case pTypeLighting1:
 	case pTypeLighting2:
@@ -1006,6 +1021,7 @@ bool IsLightOrSwitch(const int devType, const int subType)
 	case pTypeSecurity2:
 	case pTypeCurtain:
 	case pTypeBlinds:
+	case pTypeChime:
 	case pTypeRFY:
 	case pTypeThermostat2:
 	case pTypeThermostat3:
@@ -1015,13 +1031,87 @@ bool IsLightOrSwitch(const int devType, const int subType)
 	case pTypeHomeConfort:
 	case pTypeFS20:
 	case pTypeHunter:
+	case pTypeDDxxxx:
 		bIsLightSwitch = true;
 		break;
 	case pTypeRadiator1:
-		bIsLightSwitch = (subType == sTypeSmartwaresSwitchRadiator);
+		bIsLightSwitch = (dSubType == sTypeSmartwaresSwitchRadiator);
 		break;
 	}
 	return bIsLightSwitch;
+}
+
+bool IsTemp(const int dType, const int dSubType)
+{
+	return (
+		(dType == pTypeTEMP_HUM)
+		|| (dType == pTypeTEMP_HUM_BARO)
+		|| (dType == pTypeTEMP)
+		|| (dType == pTypeHUM)
+		|| (dType == pTypeTEMP_BARO)
+		|| (dType == pTypeEvohomeZone)
+		|| (dType == pTypeEvohomeWater)
+		|| ((dType == pTypeWIND) && (dSubType == sTypeWIND4))
+		|| ((dType == pTypeUV) && (dSubType == sTypeUV3))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeSystemTemp))
+		|| (dType == pTypeThermostat1)
+		|| ((dType == pTypeRFXSensor) && (dSubType == sTypeRFXSensorTemp))
+		|| (dType == pTypeRego6XXTemp)
+		);
+}
+
+bool IsWeather(const int dType, const int dSubType)
+{
+	return (
+		(dType == pTypeWIND)
+		|| (dType == pTypeRAIN)
+		|| (dType == pTypeTEMP_HUM_BARO)
+		|| (dType == pTypeTEMP_BARO)
+		|| (dType == pTypeUV)
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeVisibility))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeBaro))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeSolarRadiation))
+		);
+};
+
+bool IsUtility(const int dType, const int dSubType)
+{
+	return (
+		(dType == pTypeP1Power)
+		|| (dType == pTypeP1Gas)
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeKwh))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeVoltage))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeCurrent))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeTextStatus))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypePercentage))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeCounterIncremental))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeManagedCounter))
+		|| ((dType == pTypeRFXSensor) && (dSubType == sTypeRFXSensorVolt))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeWaterflow))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeCustom))
+		|| ((dType == pTypeSetpoint) && (dSubType == sTypeSetpoint))
+		|| ((dType == pTypeRFXSensor) && (dSubType == sTypeRFXSensorAD))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeAlert))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypePressure))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeSoilMoisture))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeLeafWetness))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeSoundLevel))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeFan))
+		|| ((dType == pTypeGeneral) && (dSubType == sTypeDistance))
+		|| (dType == pTypeLux)
+		|| (dType == pTypeCURRENT)
+		|| (dType == pTypeCURRENTENERGY)
+		|| (dType == pTypeENERGY)
+		|| (dType == pTypePOWER)
+		|| (dType == pTypeYouLess)
+		|| (dType == pTypeAirQuality)
+		|| (dType == pTypeUsage)
+		|| (dType == pTypeWEIGHT)
+		|| (dType == pTypeRFXMeter)
+		|| ((dType == pTypeRego6XXValue) && (dSubType == sTypeRego6XXCounter))
+		|| ((dType == pTypeRadiator1) && (dSubType == sTypeSmartwares))
+		|| ((dType == pTypeSetpoint) && (dSubType == sTypeSetpoint))
+		);
 }
 
 int MStoBeaufort(const float ms)
@@ -1378,6 +1468,7 @@ int SetThreadName(const std::thread::native_handle_type &thread, const char *nam
 	pthread_set_name_np(thread, name_trunc);
 	return 0;
 #endif
+	return 0;
 }
 #endif
 
@@ -1443,6 +1534,16 @@ std::string GenerateUUID() // DCE/RFC 4122
 	return uuid;
 }
 
+bool isHexRepresentation(const std::string &input)
+{
+	if (input.empty())
+		return false;
+	bool bIsHex = true;
+	for (auto itt = input.begin(); itt != input.end(); ++itt)
+		bIsHex &= (hexCHARS.find(*itt) != std::string::npos);
+	return bIsHex;
+}
+
 double round_digits(double dIn, const int totDigits)
 {
 	std::stringstream sstr;
@@ -1481,5 +1582,151 @@ std::wstring utf8_to_wstring(const std::string& utf8str)
 	// UTF-8 to wstring
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> wconv;
 	return wconv.from_bytes(utf8str);
+}
+
+std::string sha256hex(const std::string &input)
+{
+    unsigned char digest[33] = {0};
+	char hexdigest[65] = {0};
+	size_t idxb, idxh;
+
+    SHA256((const unsigned char *)input.c_str(), input.length(), digest);
+
+	for (idxb = 0, idxh = 0; idxb < 32; idxb++, idxh += 2)
+	{
+		uint8_t bval = digest[idxb] & 0xFF;
+		hexdigest[idxh] = hexCHARS[(bval >> 4) & 0xf];
+		hexdigest[idxh + 1] = hexCHARS[bval & 0xF];
+	}
+	hexdigest[idxh] = 0;
+	return(std::string(hexdigest));
+}
+
+std::string sha256raw(const std::string &input)
+{
+    unsigned char digest[33] = {0};
+    SHA256((const unsigned char *)input.c_str(), input.length(), digest);
+	return std::string((const char *)digest);
+}
+
+#ifdef _WIN32
+#define gmtime_r(timep, result) gmtime_s(result, timep)
+#endif
+
+constexpr std::array<const char*, 12> months{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+constexpr std::array<const char*, 7> wkdays{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+char* make_web_time(const time_t rawtime)
+{
+	static char buffer[256];
+	struct tm gmt;
+#ifdef _WIN32
+	if (gmtime_r(&rawtime, &gmt)) //windows returns errno_t, which returns zero when successful
+#else
+	if (gmtime_r(&rawtime, &gmt) == nullptr)
+#endif
+	{
+		strcpy(buffer, "Thu, 1 Jan 1970 00:00:00 GMT");
+	}
+	else
+	{
+		sprintf(buffer, "%s, %02d %s %04d %02d:%02d:%02d GMT",
+			wkdays[gmt.tm_wday],
+			gmt.tm_mday,
+			months[gmt.tm_mon],
+			gmt.tm_year + 1900,
+			gmt.tm_hour,
+			gmt.tm_min,
+			gmt.tm_sec);
+
+
+	}
+	return buffer;
+}
+
+const std::string base32RFC4648 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=";
+bool base32_decode(const std::string &input, std::string &output)
+{
+	if ((input.size() % 8) != 0)
+		return false;
+
+	std::vector<uint8_t> outTotal;
+
+	for(uint16_t j = 0; j < (input.size() / 8); j++)
+	{
+		// pack 8 bytes
+		uint64_t buffer = 0;
+		for(uint8_t i = 0; i < 8; i++)
+		{
+			if(i != 0)
+			{
+				buffer = (buffer << 5);
+			}
+			// input check
+			size_t pos = base32RFC4648.find(input[(j*8) + i]);
+			if(pos == std::string::npos)
+			{
+				return false;
+			}
+			else if (pos == 32)		// '=' is padding sign, we skip it
+			{
+				buffer = buffer | 0;
+			}
+			else
+			{
+				buffer = buffer | base32RFC4648.find(input[(j*8) + i]);
+			}
+		}
+		// output 5 bytes
+		for(int8_t x = 4; x >= 0; x--)
+		{
+			outTotal.push_back((unsigned char)(buffer >> (x * 8)));
+		}
+	}
+
+	output.assign(std::string(outTotal.begin(), outTotal.end()));
+	return true;
+}
+
+bool base32_encode(const std::string &input, std::string &output)
+{
+	if (input.empty())
+		return false;
+
+	std::vector<uint8_t> outTotal;
+
+	for(uint16_t j = 0; j < (input.size() / 5); j++)
+	{
+		// pack 5 bytes
+		uint64_t buffer = 0;
+		for(uint8_t i = 0; i < 5; i++)
+		{
+			if(i != 0)
+			{
+				buffer = (buffer << 8);
+			}
+			buffer = buffer | input[(j*5) + i];
+		}
+		// output 8 bytes
+		for(int8_t x = 7; x >= 0; x--)
+		{
+			outTotal.push_back(base32RFC4648[(buffer >> (x * 5)) & 0x1F]);
+		}
+	}
+
+	output.assign(std::string(outTotal.begin(), outTotal.end()));
+	return true;
+}
+
+std::string vector_2_string(std::vector<std::string> const& strings, const std::string &delim)
+{
+	std::stringstream ss;
+	for (const auto& itt : strings)
+	{
+		if (!ss.str().empty())
+			ss << delim;
+		ss << itt;
+	}
+	return ss.str();
 }
 

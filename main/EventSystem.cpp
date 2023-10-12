@@ -13,7 +13,6 @@
 #include "../hardware/MySensorsBase.h"
 #include <iostream>
 #include "../httpclient/UrlEncode.h"
-#include "localtime_r.h"
 #include "SQLHelper.h"
 #include "../notifications/NotificationHelper.h"
 #include "WebServer.h"
@@ -203,13 +202,31 @@ void CEventSystem::LoadEvents()
 	m_lua_Dir = szUserDataFolder + "scripts\\lua\\";
 	dzv_Dir = szUserDataFolder + "scripts\\dzVents\\generated_scripts\\";
 	dzvents->m_scriptsDir = szUserDataFolder + "scripts\\dzVents\\scripts\\";
+	dzvents->m_dataDir = szUserDataFolder + "scripts\\dzVents\\data\\";
 	dzvents->m_runtimeDir = szStartupFolder + "dzVents\\runtime\\";
 #else
 	m_lua_Dir = szUserDataFolder + "scripts/lua/";
 	dzv_Dir = szUserDataFolder + "scripts/dzVents/generated_scripts/";
 	dzvents->m_scriptsDir = szUserDataFolder + "scripts/dzVents/scripts/";
+	dzvents->m_dataDir = szUserDataFolder + "scripts/dzVents/data/";
 	dzvents->m_runtimeDir = szStartupFolder + "dzVents/runtime/";
 #endif
+	if (!mkdir_deep(m_lua_Dir.c_str(), 0755))
+	{
+		_log.Log(LOG_NORM, "%s: Created directory %s", __func__, m_lua_Dir.c_str());
+	}
+	if (!mkdir_deep(dzv_Dir.c_str(), 0755))
+	{
+		_log.Log(LOG_NORM, "%s: Created directory %s", __func__, dzv_Dir.c_str());
+	}
+	if (!mkdir_deep(dzvents->m_scriptsDir.c_str(), 0755))
+	{
+		_log.Log(LOG_NORM, "%s: Created directory %s", __func__, dzvents->m_scriptsDir.c_str());
+	}
+	if (!mkdir_deep(dzvents->m_dataDir.c_str(), 0755))
+	{
+		_log.Log(LOG_NORM, "%s: Created directory %s", __func__, dzvents->m_dataDir.c_str());
+	}
 
 	boost::unique_lock<boost::shared_mutex> eventsMutexLock(m_eventsMutex);
 	_log.Log(LOG_STATUS, "EventSystem: reset all events...");
@@ -452,19 +469,18 @@ void CEventSystem::GetCurrentStates()
 			{
 				//special case for incremental counter, need to calculate the actual count value
 
-				uint64_t total_min, total_max, total_real;
 				std::vector<std::vector<std::string> > result2;
 
 				result2 = m_sql.safe_query("SELECT sValue FROM DeviceStatus WHERE (ID=%" PRIu64 ")", sitem.ID);
-				total_max = std::stoull(result2[0][0]);
+				uint64_t total_max = std::stoull(result2[0][0]);
 
 				//get value of today
 				std::string szDate = TimeToString(nullptr, TF_Date);
 				result2 = m_sql.safe_query("SELECT MIN(Value) FROM Meter WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q')", sitem.ID, szDate.c_str());
 				if (!result2.empty())
 				{
-					total_min = std::stoull(result2[0][0]);
-					total_real = total_max - total_min;
+					uint64_t total_min = std::stoull(result2[0][0]);
+					uint64_t total_real = total_max - total_min;
 
 					sd[4] = std::to_string(total_real); //sitem.sValue = l_sValue.assign(sd[4]);
 				}
@@ -581,7 +597,6 @@ void CEventSystem::GetCurrentMeasurementStates()
 	m_winddirValuesByName.clear();
 	m_windspeedValuesByName.clear();
 	m_windgustValuesByName.clear();
-	m_zwaveAlarmValuesByName.clear();
 
 	m_tempValuesByID.clear();
 	m_dewValuesByID.clear();
@@ -595,7 +610,6 @@ void CEventSystem::GetCurrentMeasurementStates()
 	m_winddirValuesByID.clear();
 	m_windspeedValuesByID.clear();
 	m_windgustValuesByID.clear();
-	m_zwaveAlarmValuesByID.clear();
 
 	boost::shared_lock<boost::shared_mutex> devicestatesMutexLock(m_devicestatesMutex);
 
@@ -635,7 +649,6 @@ void CEventSystem::GetCurrentMeasurementStates()
 		bool isWindDir = false;
 		bool isWindSpeed = false;
 		bool isWindGust = false;
-		bool isZWaveAlarm = false;
 
 		switch (sitem.devType)
 		{
@@ -647,7 +660,7 @@ void CEventSystem::GetCurrentMeasurementStates()
 				isTemp = true;
 			}
 			break;
-		case pTypeThermostat:
+		case pTypeSetpoint:
 			if (sitem.subType == sTypeThermTemperature)
 			{
 				if (!splitresults.empty())
@@ -861,22 +874,16 @@ void CEventSystem::GetCurrentMeasurementStates()
 			}
 			else
 			{
-				if (sitem.subType == sTypeZWaveAlarm)
-				{
-					alarmval = sitem.nValue;
-					isZWaveAlarm = true;
-				}
-				else if (sitem.subType == sTypeCounterIncremental)
+				if (sitem.subType == sTypeCounterIncremental)
 				{
 					const _eMeterType metertype = (const _eMeterType)sitem.switchtype;
 
 					float divider = m_sql.GetCounterDivider(int(metertype), int(sitem.devType), float(sitem.AddjValue2));
 
-					uint64_t total_min, total_max, total_real;
 					std::vector<std::vector<std::string> > result2;
 
 					result2 = m_sql.safe_query("SELECT sValue FROM DeviceStatus WHERE (ID=%" PRIu64 ")", sitem.ID);
-					total_max = std::stoull(result2[0][0]);
+					uint64_t total_max = std::stoull(result2[0][0]);
 
 					//get value of today
 					std::string szDate = TimeToString(nullptr, TF_Date);
@@ -884,8 +891,8 @@ void CEventSystem::GetCurrentMeasurementStates()
 						sitem.ID, szDate.c_str());
 					if (!result2.empty())
 					{
-						total_min = std::stoull(result2[0][0]);
-						total_real = total_max - total_min;
+						uint64_t total_min = std::stoull(result2[0][0]);
+						uint64_t total_real = total_max - total_min;
 
 						utilityval = float(total_real) / divider;
 						isUtility = true;
@@ -1055,11 +1062,6 @@ void CEventSystem::GetCurrentMeasurementStates()
 		if (isWindGust) {
 			m_windgustValuesByName[sitem.deviceName] = windgust;
 			m_windgustValuesByID[sitem.ID] = windgust;
-		}
-		if (isZWaveAlarm)
-		{
-			m_zwaveAlarmValuesByName[sitem.deviceName] = alarmval;
-			m_zwaveAlarmValuesByID[sitem.ID] = alarmval;
 		}
 	}
 }
@@ -1519,7 +1521,6 @@ void CEventSystem::EvaluateEvent(const std::vector<_tEventQueue> &items)
 		return;
 
 	std::vector<std::string> FileEntries;
-	std::string filename;
 #ifdef ENABLE_PYTHON
 	std::vector<std::string> FileEntriesPython;
 	DirectoryListing(FileEntriesPython, m_python_Dir, false, true);
@@ -1808,15 +1809,6 @@ lua_State *CEventSystem::CreateBlocklyLuaState()
 		}
 		luaTable.Publish();
 	}
-	if (!m_zwaveAlarmValuesByID.empty())
-	{
-		luaTable.InitTable(lua_state, "zwavealarms", (int)m_zwaveAlarmValuesByID.size(), 0);
-		for (const auto &alarm : m_zwaveAlarmValuesByID)
-		{
-			luaTable.AddNumber(alarm.first, alarm.second);
-		}
-		luaTable.Publish();
-	}
 
 	lua_pushnumber(lua_state, (lua_Number)m_SecStatus);
 	lua_setglobal(lua_state, "securitystatus");
@@ -1935,7 +1927,7 @@ void CEventSystem::EvaluateDatabaseEvents(const _tEventQueue &item)
 		lua_close(lua_state);
 }
 
-static inline long long GetIndexFromDevice(std::string devline)
+static inline int64_t GetIndexFromDevice(std::string devline)
 {
 	size_t fpos = devline.find('[');
 	if (fpos == std::string::npos)
@@ -1951,7 +1943,7 @@ static inline long long GetIndexFromDevice(std::string devline)
 std::string CEventSystem::ProcessVariableArgument(const std::string &Argument)
 {
 	std::string ret = Argument;
-	long long dindex = GetIndexFromDevice(Argument);
+	int64_t dindex = GetIndexFromDevice(Argument);
 	if (dindex == -1)
 		return ret;
 
@@ -2081,16 +2073,6 @@ std::string CEventSystem::ProcessVariableArgument(const std::string &Argument)
 		if (itt != m_uservariables.end())
 		{
 			return itt->second.variableValue;
-		}
-	}
-	else if (Argument.find("zwavealarms") == 0)
-	{
-		auto itt = m_zwaveAlarmValuesByID.find(dindex);
-		if (itt != m_zwaveAlarmValuesByID.end())
-		{
-			std::stringstream sstr;
-			sstr << (int)itt->second;
-			return sstr.str();
 		}
 	}
 
@@ -2675,7 +2657,6 @@ void CEventSystem::EvaluateLuaClassic(lua_State *lua_state, const _tEventQueue &
 		//float thisDeviceWindSpeed = 0;
 		//float thisDeviceWindGust = 0;
 		float thisDeviceWeather = 0;
-		int thisZwaveAlarm = 0;
 
 		if (!m_tempValuesByName.empty())
 		{
@@ -2830,19 +2811,6 @@ void CEventSystem::EvaluateLuaClassic(lua_State *lua_state, const _tEventQueue &
 			}
 			luaTable.Publish();
 		}
-		if (!m_zwaveAlarmValuesByName.empty())
-		{
-			CLuaTable luaTable(lua_state, "otherdevices_zwavealarms", (int)m_zwaveAlarmValuesByName.size(), 0);
-			for (const auto &alarm : m_zwaveAlarmValuesByName)
-			{
-				luaTable.AddNumber(alarm.first, alarm.second);
-				if (alarm.first == item.devname)
-				{
-					thisZwaveAlarm = alarm.second;
-				}
-			}
-			luaTable.Publish();
-		}
 
 		if (item.reason == REASON_DEVICE)
 		{
@@ -2898,25 +2866,15 @@ void CEventSystem::EvaluateLuaClassic(lua_State *lua_state, const _tEventQueue &
 				tempName += "_UV";
 				luaTable.AddNumber(tempName, thisDeviceUV);
 			}
-			if (thisZwaveAlarm != 0) {
-				std::string alarmName = item.devname;
-				alarmName += "_ZWaveAlarm";
-				luaTable.AddNumber(alarmName, thisZwaveAlarm);
-			}
 			luaTable.Publish();
 
-			// BEGIN OTO: populate changed info
-			luaTable.InitTable(lua_state, "devicechanged_ext", 3, 0);
+			luaTable.InitTable(lua_state, "devicechanged_ext", 5, 0);
 			luaTable.AddInteger("idx", item.id);
+			luaTable.AddString("name", item.devname);
 			luaTable.AddString("svalue", item.sValue);
 			luaTable.AddInteger("nvalue", item.nValue);
-
-			/* USELESS, WE HAVE THE DEVICE INDEX
-			// replace devicechanged =>
-			luaTable.AddInteger("name", nValue);
-			*/
+			luaTable.AddString("state", item.nValueWording);
 			luaTable.Publish();
-			// END OTO
 		}
 	}
 
@@ -3730,6 +3688,8 @@ bool CEventSystem::ScheduleEvent(int deviceID, const std::string &Action, bool i
 
 		}
 		else {
+			if (oParseResults.sCommand == "Closed")
+				oParseResults.sCommand = "Close";
 			tItem = _tTaskItem::SwitchLightEvent(fDelayTime, deviceID, oParseResults.sCommand, level, NoColor, eventName, "EventSystem/" + eventName);
 		}
 		m_sql.AddTaskItem(tItem);
@@ -3773,7 +3733,6 @@ bool CEventSystem::ScheduleEvent(int deviceID, const std::string &Action, bool i
 
 std::string CEventSystem::nValueToWording(const uint8_t dType, const uint8_t dSubType, const _eSwitchType switchtype, const int nValue, const std::string &sValue, const std::map<std::string, std::string> & options)
 {
-
 	std::string lstatus;
 	int llevel = 0;
 	bool bHaveDimmer = false;
@@ -3790,7 +3749,11 @@ std::string CEventSystem::nValueToWording(const uint8_t dType, const uint8_t dSu
 
 	if (switchtype == STYPE_Dimmer)
 	{
-		// use default lstatus
+		if (lstatus.find("Set Level") == 0)
+		{
+			// treat 'Set level' as ON
+			lstatus = "On";
+		}
 	}
 	else if (((dType == pTypeGeneral) && (dSubType == sTypeCounterIncremental)) ||
 		(dType == pTypeRFXMeter))
@@ -3800,6 +3763,10 @@ std::string CEventSystem::nValueToWording(const uint8_t dType, const uint8_t dSu
 	else if (dType == pTypeHUM)
 	{
 		lstatus = std::to_string(nValue);
+	}
+	else if (dType == pTypeEvohome)
+	{
+		GetLightStatus(dType, dSubType, switchtype, nValue, sValue, lstatus, llevel, bHaveDimmer, maxDimLevel, bHaveGroupCmd);
 	}
 	else if (switchtype == STYPE_Selector)
 	{
@@ -3845,53 +3812,53 @@ std::string CEventSystem::nValueToWording(const uint8_t dType, const uint8_t dSu
 	}
 	else if (
 		(switchtype == STYPE_Blinds)
-		|| (switchtype == STYPE_VenetianBlindsUS)
-		|| (switchtype == STYPE_VenetianBlindsEU))
-	{
-		if ((lstatus == "On") || (lstatus == "Close inline relay"))
-		{
-			lstatus = closedStatus;
-		}
-		else if ((lstatus == "Stop") || (lstatus == "Stop inline relay"))
-		{
-			lstatus = "Stopped";
-		}
-		else
-		{
-			lstatus = openStatus;
-		}
-	}
-	else if (switchtype == STYPE_BlindsInverted)
-	{
-		if (lstatus == "On")
-		{
-			lstatus = openStatus;
-		}
-		else if (lstatus == "Off")
-		{
-			lstatus = closedStatus;
-		}
-		else if ((lstatus == "Stop") || (lstatus == "Stop inline relay"))
-		{
-			lstatus = "Stopped";
-		}
-	}
-	else if (
-		(switchtype == STYPE_BlindsPercentage)
-		|| (switchtype == STYPE_BlindsPercentageInverted)
+		|| (switchtype == STYPE_BlindsPercentage)
 		|| (switchtype == STYPE_BlindsPercentageWithStop)
-		|| (switchtype == STYPE_BlindsPercentageInvertedWithStop)
+		|| (switchtype == STYPE_VenetianBlindsUS)
+		|| (switchtype == STYPE_VenetianBlindsEU)
 		)
 	{
-		//int iLevel = round((float(maxDimLevel) / 100.0F) * LastLevel);
-		//root["result"][ii]["LevelInt"] = iLevel;
-		if (lstatus == "On")
+		if (lstatus == "Close inline relay")
 		{
-			lstatus = ((switchtype == STYPE_BlindsPercentage) || (switchtype == STYPE_BlindsPercentageWithStop)) ? closedStatus : openStatus;
+			lstatus = "Close";
 		}
-		else if (lstatus == "Off")
+		else if (lstatus == "Open inline relay")
 		{
-			lstatus = ((switchtype == STYPE_BlindsPercentage) || (switchtype == STYPE_BlindsPercentageWithStop)) ? openStatus : closedStatus;
+			lstatus = "Open";
+		}
+
+		bool bReverseState = false;
+		bool bReversePosition = false;
+
+		auto itt = options.find("ReverseState");
+		if (itt!= options.end())
+			bReverseState = (itt->second == "true");
+		itt = options.find("ReversePosition");
+		if (itt != options.end())
+			bReversePosition = (itt->second == "true");
+
+		if (bReversePosition)
+		{
+			llevel = 100 - llevel;
+			if (lstatus.find("Set Level") == 0)
+				lstatus = std_format("Set Level: %d %%", llevel);
+		}
+
+		if (bReverseState)
+		{
+			if (lstatus == "Open")
+				lstatus = "Close";
+			else if (lstatus == "Close")
+				lstatus = "Open";
+		}
+
+		if (lstatus == "Open")
+		{
+			lstatus = openStatus;
+		}
+		else if (lstatus == "Close")
+		{
+			lstatus = closedStatus;
 		}
 		else if (lstatus == "Stop")
 		{
@@ -3952,7 +3919,6 @@ void CEventSystem::reportMissingDevice(const int deviceID, const _tEventItem &it
 	{
 		_log.Log(LOG_ERROR, "EventSystem: Device no. '%d' used in event '%s' no longer exists, disabling event!", deviceID, item.Name.c_str());
 
-		std::vector<std::vector<std::string> > result;
 		result = m_sql.safe_query("SELECT EventMaster.ID FROM EventMaster INNER JOIN EventRules ON EventRules.EMID=EventMaster.ID WHERE (EventRules.ID == '%" PRIu64 "')",
 			item.ID);
 		if (!result.empty())
@@ -4036,8 +4002,8 @@ int CEventSystem::calculateDimLevel(int deviceID, int percentageLevel)
 		{
 			if (
 				(switchtype == STYPE_Dimmer)
-				|| (switchtype == STYPE_BlindsPercentage) || (switchtype == STYPE_BlindsPercentageInverted)
-				|| (switchtype == STYPE_BlindsPercentageWithStop) || (switchtype == STYPE_BlindsPercentageInvertedWithStop)
+				|| (switchtype == STYPE_BlindsPercentage)
+				|| (switchtype == STYPE_BlindsPercentageWithStop)
 				)
 			{
 				float fLevel = (maxDimLevel / 100.0F) * percentageLevel;
@@ -4055,7 +4021,7 @@ int CEventSystem::calculateDimLevel(int deviceID, int percentageLevel)
 				{
 					std::map<std::string, std::string> statuses;
 					GetSelectorSwitchStatuses(m_sql.BuildDeviceOptions(sd[3]), statuses);
-					maxLevel = (statuses.size() - 1) * 10;
+					maxLevel = static_cast<int>(statuses.size() - 1) * 10;
 				}
 				if (iLevel > maxLevel)
 					iLevel = maxLevel;
@@ -4076,134 +4042,15 @@ namespace http {
 			std::string eventstatus;
 		};
 
-		void CWebServer::EventCreate(WebEmSession & session, const request& req, std::string & redirect_uri)
-		{
-			Json::Value root;
-			root["title"] = "CreateEvent";
-			root["status"] = "ERR";
-
-			redirect_uri = root.toStyledString();
-			if (session.rights != 2)
-			{
-				session.reply_status = reply::forbidden;
-				return; //Only admin user allowed
-			}
-
-			std::string eventname = HTMLSanitizer::Sanitize(CURLEncode::URLDecode(request::findValue(&req, "name")));
-			if (eventname.empty())
-				return;
-
-			std::string interpreter = CURLEncode::URLDecode(request::findValue(&req, "interpreter"));
-			if (interpreter.empty())
-				return;
-
-			std::string eventtype = CURLEncode::URLDecode(request::findValue(&req, "eventtype"));
-			if (eventtype.empty())
-				return;
-
-			std::string eventxml = CURLEncode::URLDecode(request::findValue(&req, "xml"));
-			if (eventxml.empty())
-				return;
-
-			std::string eventactive = CURLEncode::URLDecode(request::findValue(&req, "eventstatus"));
-			if (eventactive.empty())
-				return;
-
-			std::string eventid = CURLEncode::URLDecode(request::findValue(&req, "eventid"));
-
-			std::string eventlogic = CURLEncode::URLDecode(request::findValue(&req, "logicarray"));
-			if ((interpreter == "Blockly") && (eventlogic.empty()))
-				return;
-
-			int eventStatus = atoi(eventactive.c_str());
-
-			bool parsingSuccessful = eventxml.length() > 0;
-			Json::Value jsonRoot;
-			if (interpreter == "Blockly") {
-				parsingSuccessful = ParseJSon(eventlogic, jsonRoot);
-			}
-
-			if (!parsingSuccessful)
-			{
-				_log.Log(LOG_ERROR, "Webserver event parser: Invalid data received!");
-			}
-			else {
-				if (eventid.empty())
-				{
-					std::vector<std::vector<std::string> > result;
-					m_sql.safe_query("INSERT INTO EventMaster (Name, Interpreter, Type, XMLStatement, Status) VALUES ('%q','%q','%q','%q','%d')",
-						eventname.c_str(), interpreter.c_str(), eventtype.c_str(), eventxml.c_str(), eventStatus);
-					result = m_sql.safe_query("SELECT ID FROM EventMaster WHERE (Name == '%q')",
-						eventname.c_str());
-					if (!result.empty())
-					{
-						std::vector<std::string> sd = result[0];
-						eventid = sd[0];
-					}
-				}
-				else {
-					m_sql.safe_query("UPDATE EventMaster SET Name='%q', Interpreter='%q', Type='%q', XMLStatement ='%q', Status ='%d' WHERE (ID == '%q')",
-						eventname.c_str(), interpreter.c_str(), eventtype.c_str(), eventxml.c_str(), eventStatus, eventid.c_str());
-					m_sql.safe_query("DELETE FROM EventRules WHERE (EMID == '%q')",
-						eventid.c_str());
-				}
-
-				if (eventid.empty())
-				{
-					//eventid should now never be empty!
-					_log.Log(LOG_ERROR, "Error writing event actions to database!");
-				}
-				else {
-					std::string sNewEditorTheme = CURLEncode::URLDecode(request::findValue(&req, "editortheme"));
-					std::string sOldEditorTheme = "ace/theme/xcode";
-					m_sql.GetPreferencesVar("ScriptEditorTheme", sOldEditorTheme);
-					if (sNewEditorTheme.length() && (sNewEditorTheme != sOldEditorTheme))
-					{
-						m_sql.UpdatePreferencesVar("ScriptEditorTheme", sNewEditorTheme);
-					}
-
-					if (interpreter == "Blockly") {
-						const Json::Value array = jsonRoot["eventlogic"];
-						for (int index = 0; index < (int)array.size(); ++index)
-						{
-							std::string conditions = array[index].get("conditions", "").asString();
-							std::string actions = array[index].get("actions", "").asString();
-
-							if (
-								(actions.find("SendNotification") != std::string::npos) ||
-								(actions.find("SendEmail") != std::string::npos) ||
-								(actions.find("SendSMS") != std::string::npos) ||
-								(actions.find("TriggerIFTTT") != std::string::npos)
-								)
-							{
-								stdreplace(actions, "$", "#");
-							}
-							int sequenceNo = index + 1;
-							m_sql.safe_query("INSERT INTO EventRules (EMID, Conditions, Actions, SequenceNo) VALUES ('%q','%q','%q','%d')",
-								eventid.c_str(), conditions.c_str(), actions.c_str(), sequenceNo);
-						}
-					}
-
-					m_mainworker.m_eventsystem.LoadEvents();
-					root["status"] = "OK";
-				}
-			}
-			redirect_uri = root.toStyledString();
-		}
-
-		void CWebServer::RType_Events(WebEmSession & session, const request& req, Json::Value &root)
+		void CWebServer::Cmd_Events(WebEmSession & session, const request& req, Json::Value &root)
 		{
 			//root["status"]="OK";
 			root["title"] = "Events";
 
-			std::string cparam = request::findValue(&req, "param");
+			std::string cparam = request::findValue(&req, "evparam");
 			if (cparam.empty())
 			{
-				cparam = request::findValue(&req, "dparam");
-				if (cparam.empty())
-				{
-					return;
-				}
+				return;
 			}
 
 			std::vector<std::vector<std::string> > result;
@@ -4218,10 +4065,10 @@ namespace http {
 				root["interpreters"] = "Blockly:Lua:dzVents";
 #endif
 
-				std::map<std::string, _tSortedEventsInt> _levents;
 				result = m_sql.safe_query("SELECT ID, Name, XMLStatement, Status FROM EventMaster ORDER BY ID ASC");
 				if (!result.empty())
 				{
+					std::map<std::string, _tSortedEventsInt> _levents;
 					for (const auto &sd : result)
 					{
 						std::string ID = sd[0];
@@ -4287,8 +4134,6 @@ namespace http {
 				if (idx.empty())
 					return;
 
-				int ii = 0;
-
 				std::string sEditorTheme = "ace/theme/xcode";
 				m_sql.GetPreferencesVar("ScriptEditorTheme", sEditorTheme);
 				root["editortheme"] = sEditorTheme;
@@ -4297,6 +4142,7 @@ namespace http {
 					idx.c_str());
 				if (!result.empty())
 				{
+					int ii = 0;
 					for (const auto &sd : result)
 					{
 						std::string ID = sd[0];
@@ -4333,7 +4179,6 @@ namespace http {
 			}
 			else if (cparam == "create")
 			{
-
 				root["title"] = "AddEvent";
 
 				std::string eventname = HTMLSanitizer::Sanitize(request::findValue(&req, "name"));
@@ -4357,6 +4202,8 @@ namespace http {
 					return;
 
 				std::string eventid = request::findValue(&req, "eventid");
+				if (eventid == "undefined")
+					eventid = "";
 
 				std::string eventlogic = request::findValue(&req, "logicarray");
 				if ((interpreter == "Blockly") && (eventlogic.empty()))

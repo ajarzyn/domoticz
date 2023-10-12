@@ -37,8 +37,7 @@ define(['app', 'components/rgbw-picker/RgbwPicker'], function (app) {
 
             vm.$onInit = function () {
                 // TODO: Add caching mechanism for this request
-                domoticzApi.sendRequest({
-                    type: 'custom_light_icons'
+                domoticzApi.sendCommand('custom_light_icons', {
                 }).then(function (data) {
                     switch_icons = (data.result || [])
                         .filter(function (item) {
@@ -501,12 +500,39 @@ define(['app', 'components/rgbw-picker/RgbwPicker'], function (app) {
         vm.isOffActionAvailable = isOffActionAvailable;
         vm.isColorSettingsAvailable = isColorSettingsAvailable;
         vm.isWhiteSettingsAvailable = isWhiteSettingsAvailable;
+		vm.isBlind = isBlind;
+		vm.onActionLabel = onActionLabel;
+		vm.offActionLabel = offActionLabel;
 
         init();
+
+        function populatedevicetypes() {
+            domoticzApi.sendCommand('getswitchtypes', {})
+                .then(function (data) {
+                    if ( data.status === 'OK' ) {
+						$("#switch-types-template").html("");
+						$.each(data.result, function (stcode, stdesc) {
+							if (stdesc != null) {
+								var option = $('<option />');
+								option.attr('value', stcode).text(stdesc);
+								$("#switch-types-template").append(option);
+							}
+						});
+                    }
+                    $element.find('#switch-types-template > option').each(function () {
+                        vm.switchTypeOptions.push({
+                            label: $(this).text(),
+                            value: parseInt($(this).val())
+                        });
+                    });
+                });
+        }
 
         function init() {
             vm.deviceIdx = $routeParams.id;
             vm.switchTypeOptions = [];
+
+            populatedevicetypes();
 
             deviceApi.getDeviceInfo(vm.deviceIdx).then(function (device) {
                 vm.device = device;
@@ -527,12 +553,6 @@ define(['app', 'components/rgbw-picker/RgbwPicker'], function (app) {
                 });
             });
 
-            $element.find('#switch-types-template > option').each(function () {
-                vm.switchTypeOptions.push({
-                    label: $(this).text(),
-                    value: parseInt($(this).val())
-                });
-            });
         }
 
         function updateDevice() {
@@ -551,8 +571,16 @@ define(['app', 'components/rgbw-picker/RgbwPicker'], function (app) {
                 options.push('SelectorStyle:' + vm.device.SelectorStyle);
                 options.push('LevelOffHidden:' + vm.device.LevelOffHidden);
             }
+			if (vm.isBlind())
+			{
+                options.push('ReverseState:' + vm.device.ReverseState);
+                options.push('ReversePosition:' + vm.device.ReversePosition);
+			}
+			//console.log("options: ");
+			//console.log(options);
             var params = {
-                type: 'setused',
+                type: 'command',
+                param: 'setused',
                 name: vm.device.Name,
                 description: vm.device.Description,
                 strparam1: b64EncodeUnicode(vm.device.StrParam1),
@@ -625,5 +653,27 @@ define(['app', 'components/rgbw-picker/RgbwPicker'], function (app) {
         function isWhiteSettingsAvailable() {
             return vm.device.SubType === 'White';
         }
+		
+		function isBlind() {
+			return [3, 13, 14, 15, 21].includes(vm.device.SwitchTypeVal);
+		}
+		
+		function onActionLabel() {
+			if (isBlind() == true) {
+				return $.t('Open Action');
+			}
+			else {
+				return $.t('On Action');
+			}
+		}
+
+		function offActionLabel() {
+			if (isBlind() == true) {
+				return $.t('Close Action');
+			}
+			else {
+				return $.t('Off Action');
+			}
+		}
     });
 });

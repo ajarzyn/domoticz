@@ -103,8 +103,11 @@ define(['app', 'livesocket'], function (app) {
 			var id = "";
 			//Scenes
 			if (
-				(item.Type.indexOf('Scene') == 0) ||
-				(item.Type.indexOf('Group') == 0)
+				($scope.config.EnableTabScenes) &&
+				(
+					(item.Type.indexOf('Scene') == 0) ||
+					(item.Type.indexOf('Group') == 0)
+				)
 			) {
 				id = "#scene_" + item.idx;
 				var obj = $(id);
@@ -165,8 +168,10 @@ define(['app', 'livesocket'], function (app) {
 							if ($(id + " #lastupdate > span").html() != item.LastUpdate) {
 								$(id + " #lastupdate > span").html(item.LastUpdate);
 							}
-							if ($scope.config.ShowUpdatedEffect == true) {
-								$(id + " #name").effect("highlight", { color: '#EEFFEE' }, 1000);
+							if (!document.hidden) {
+								if ($scope.config.ShowUpdatedEffect == true) {
+									$(id + " #name").effect("highlight", { color: '#EEFFEE' }, 1000);
+								}
 							}
 						}
 					}
@@ -177,20 +182,23 @@ define(['app', 'livesocket'], function (app) {
 			//Lights
 			var isdimmer = false;
 			if (
-				(item.Type.indexOf('Light') == 0) ||
-				(item.Type.indexOf('Blind') == 0) ||
-				(item.Type.indexOf('Curtain') == 0) ||
-				(item.Type.indexOf('Thermostat 2') == 0) ||
-				(item.Type.indexOf('Thermostat 3') == 0) ||
-				(item.Type.indexOf('Chime') == 0) ||
-				(item.Type.indexOf('Color Switch') == 0) ||
-				(item.Type.indexOf('RFY') == 0) ||
-				(item.Type.indexOf('ASA') == 0) ||
-				(item.SubType == "Smartwares Mode") ||
-				(item.SubType == "Relay") ||
-				((typeof item.SubType != 'undefined') && (item.SubType.indexOf('Itho') == 0)) ||
-				((typeof item.SubType != 'undefined') && (item.SubType.indexOf('Lucci') == 0)) ||
-				((typeof item.SubType != 'undefined') && (item.SubType.indexOf('Westinghouse') == 0))
+				($scope.config.EnableTabLights) &&
+				(
+					(item.Type.indexOf('Light') == 0) ||
+					(item.Type.indexOf('Blind') == 0) ||
+					(item.Type.indexOf('Curtain') == 0) ||
+					(item.Type.indexOf('Thermostat 2') == 0) ||
+					(item.Type.indexOf('Thermostat 3') == 0) ||
+					(item.Type.indexOf('Chime') == 0) ||
+					(item.Type.indexOf('Color Switch') == 0) ||
+					(item.Type.indexOf('RFY') == 0) ||
+					(item.Type.indexOf('ASA') == 0) ||
+					(item.SubType == "Smartwares Mode") ||
+					(item.SubType == "Relay") ||
+					((typeof item.SubType != 'undefined') && (item.SubType.indexOf('Itho') == 0)) ||
+					((typeof item.SubType != 'undefined') && (item.SubType.indexOf('Lucci') == 0)) ||
+					((typeof item.SubType != 'undefined') && (item.SubType.indexOf('Westinghouse') == 0))
+				)
 			) {
 				id = "#light_" + item.idx;
 				var obj = $(id);
@@ -602,6 +610,10 @@ define(['app', 'livesocket'], function (app) {
 						else if (item.SwitchType == "Dimmer") {
 							isdimmer = true;
 							if (item.CustomImage == 0) item.Image = item.TypeImg;
+							if (typeof item.Image == 'undefined') {
+								item.CustomImage = 0;
+								item.Image = item.TypeImg;
+							}
 							item.Image = item.Image.charAt(0).toUpperCase() + item.Image.slice(1);
 							if (
 								(item.Status == 'On') ||
@@ -931,9 +943,12 @@ define(['app', 'livesocket'], function (app) {
 
 			//Temperature Sensors
 			if (
-				(typeof item.Temp != 'undefined') ||
-				(typeof item.Humidity != 'undefined') ||
-				(typeof item.Chill != 'undefined')
+				($scope.config.EnableTabTemp) &&
+				(
+					(typeof item.Temp != 'undefined') ||
+					(typeof item.Humidity != 'undefined') ||
+					(typeof item.Chill != 'undefined')
+				)
 			) {
 				id = "#temp_" + item.idx;
 				var obj = $(id);
@@ -1061,12 +1076,15 @@ define(['app', 'livesocket'], function (app) {
 
 			//Weather Sensors
 			if (
-				(typeof item.Rain != 'undefined') ||
-				(typeof item.Visibility != 'undefined') ||
-				(typeof item.UVI != 'undefined') ||
-				(typeof item.Radiation != 'undefined') ||
-				(typeof item.Direction != 'undefined') ||
-				(typeof item.Barometer != 'undefined')
+				($scope.config.EnableTabWeather) &&
+				(
+					(typeof item.Rain != 'undefined') ||
+					(typeof item.Visibility != 'undefined') ||
+					(typeof item.UVI != 'undefined') ||
+					(typeof item.Radiation != 'undefined') ||
+					(typeof item.Direction != 'undefined') ||
+					(typeof item.Barometer != 'undefined')
+				)
 			) {
 				id = "#weather_" + item.idx;
 				var obj = $(id);
@@ -1227,34 +1245,35 @@ define(['app', 'livesocket'], function (app) {
 
 			//Utility Sensors
 			if (
-				(typeof item.Counter != 'undefined') ||
-				(item.Type == "Current") ||
-				(item.Type == "Energy") ||
-				(item.Type == "Current/Energy") ||
-				(item.Type == "Power") ||
-				(item.Type == "Air Quality") ||
-				(item.Type == "Lux") ||
-				(item.Type == "Weight") ||
-				(item.Type == "Usage") ||
-				(item.SubType == "Percentage") ||
-				((item.Type == "Thermostat") && (item.SubType == "SetPoint")) ||
-				(item.SubType == "kWh") ||
-				(item.SubType == "Soil Moisture") ||
-				(item.SubType == "Leaf Wetness") ||
-				(item.SubType == "Voltage") ||
-				(item.SubType == "Distance") ||
-				(item.SubType == "Current") ||
-				(item.SubType == "Text") ||
-				(item.SubType == "Alert") ||
-				(item.SubType == "Pressure") ||
-				(item.SubType == "A/D") ||
-				(item.SubType == "Thermostat Mode") ||
-				(item.SubType == "Thermostat Fan Mode") ||
-				(item.SubType == "Fan") ||
-				(item.SubType == "Smartwares") ||
-				(item.SubType == "Waterflow") ||
-				(item.SubType == "Sound Level") ||
-				(item.SubType == "Custom Sensor")
+				($scope.config.EnableTabUtility) &&
+				(
+					(typeof item.Counter != 'undefined') ||
+					(item.Type == "Current") ||
+					(item.Type == "Energy") ||
+					(item.Type == "Current/Energy") ||
+					(item.Type == "Power") ||
+					(item.Type == "Air Quality") ||
+					(item.Type == "Lux") ||
+					(item.Type == "Weight") ||
+					(item.Type == "Usage") ||
+					(item.SubType == "Percentage") ||
+					((item.Type == "Setpoint") && (item.SubType == "SetPoint")) ||
+					(item.SubType == "kWh") ||
+					(item.SubType == "Soil Moisture") ||
+					(item.SubType == "Leaf Wetness") ||
+					(item.SubType == "Voltage") ||
+					(item.SubType == "Distance") ||
+					(item.SubType == "Current") ||
+					(item.SubType == "Text") ||
+					(item.SubType == "Alert") ||
+					(item.SubType == "Pressure") ||
+					(item.SubType == "A/D") ||
+					(item.SubType == "Fan") ||
+					(item.SubType == "Smartwares") ||
+					(item.SubType == "Waterflow") ||
+					(item.SubType == "Sound Level") ||
+					(item.SubType == "Custom Sensor")
+				)
 			) {
 				id = "#utility_" + item.idx;
 				var obj = $(id);
@@ -1264,10 +1283,10 @@ define(['app', 'livesocket'], function (app) {
 						if (typeof item.Counter != 'undefined') {
 							if ($scope.config.DashboardType == 0) {
 								if (item.SubType == "Managed Counter") {
-									status += '' + item.Counter;
+									status += item.Counter;
 								}
 								else {
-									status += '' + $.t("Usage") + ': ' + item.CounterToday;
+									status += $.t("Usage") + ': ' + item.CounterToday;
 								}
 							}
 							else {
@@ -1322,8 +1341,8 @@ define(['app', 'livesocket'], function (app) {
 						else if (item.SubType == "Text") {
 							status = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
 						}
-						else if ((item.Type == "Thermostat") && (item.SubType == "SetPoint")) {
-							status = '<button class="btn btn-mini btn-info" type="button" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ',true);">' + item.Data + '\u00B0 ' + $scope.config.TempSign + '</button> ';
+						else if ((item.Type == "Setpoint") && (item.SubType == "SetPoint")) {
+							status = '<button class="btn btn-mini btn-info" type="button" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ',true, ' + item.step + ', ' + item.min + ', ' + item.max +');">' + item.Data + ' ' + item.vunit + '</button> ';
 						}
 						else if (item.SubType == "Smartwares") {
 							status += item.Data + '\u00B0 ' + $scope.config.TempSign;
@@ -1335,8 +1354,9 @@ define(['app', 'livesocket'], function (app) {
 								bHaveReturnUsage = true;
 							}
 						}
-						if (!bHaveReturnUsage) {
-							if (typeof item.Usage != 'undefined') {
+
+						if (typeof item.Usage != 'undefined') {
+							if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv == 'undefined')) {
 								if ($scope.config.DashboardType == 0) {
 									status += '<br>' + $.t("Actual") + ': ' + item.Usage;
 								}
@@ -1344,21 +1364,30 @@ define(['app', 'livesocket'], function (app) {
 									status += ", A: " + item.Usage;
 								}
 							}
+							else {
+								if (parseInt(item.Usage) > 0) {
+									if ($scope.config.DashboardType == 0) {
+										status += '<br>' + $.t("Actual") + ': ' + item.Usage;
+									}
+									else {
+										status += ", A: " + item.Usage;
+									}
+								}
+							}
 						}
 						if (typeof item.CounterDeliv != 'undefined') {
 							if (item.CounterDeliv != 0) {
 								if ($scope.config.DashboardType == 0) {
 									status += '<br>' + $.t("Return") + ': ' + item.CounterDelivToday;
-									status += '<br>' + $.t("Actual") + ': ' + item.UsageDeliv;
-								}
-								else {
+								} else {
 									status += '<br>R: T: ' + item.CounterDelivToday;
-									if (bHaveReturnUsage) {
-										status += ", A: ";
-										if (parseInt(item.UsageDeliv) > 0) {
-											status += "-";
-										}
-										status += item.UsageDeliv;
+								}
+								if (parseInt(item.UsageDeliv) > 0) {
+									if ($scope.config.DashboardType == 0) {
+										status += '<br>' + $.t("Actual") + ': -' + item.UsageDeliv;
+									}
+									else {
+										status += ", A: -" + item.UsageDeliv;
 									}
 								}
 							}
@@ -1393,7 +1422,7 @@ define(['app', 'livesocket'], function (app) {
 								bigtext = item.Counter;
 							}
 							else {
-								status = '' + $.t("Usage") + ': ' + item.CounterToday;
+								status = $.t("Usage") + ': ' + item.CounterToday;
 							}
 						}
 						else if (item.Type == "Current") {
@@ -1452,25 +1481,26 @@ define(['app', 'livesocket'], function (app) {
 							status = "";
 							bigtext = item.Data;
 						}
-						else if ((item.Type == "Thermostat") && (item.SubType == "SetPoint")) {
+						else if ((item.Type == "Setpoint") && (item.SubType == "SetPoint")) {
 							status = "";
-							bigtext = item.Data + '\u00B0 ' + $scope.config.TempSign;
-							$(id + " #img").attr('onclick', 'ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ')');
+							bigtext = item.Data + ' ' + item.vunit;
+							$(id + " #img").attr('onclick', 'ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ', false, ' + item.step + ', ' + item.min + ', ' + item.max + ')');
 						}
 						else if (item.SubType == "Smartwares") {
 							status = item.Data + '\u00B0 ' + $scope.config.TempSign;
 							bigtext = item.Data + '\u00B0 ' + $scope.config.TempSign;
-						}
-						else if ((item.SubType == "Thermostat Mode") || (item.SubType == "Thermostat Fan Mode")) {
-							status = "";
-							bigtext = item.Data;
 						}
 						else if (item.SubType == "Waterflow") {
 							status = "";
 							bigtext = item.Data;
 						}
 						if (typeof item.Usage != 'undefined') {
-							bigtext = item.Usage;
+							if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv == 'undefined')) {
+								bigtext = item.Usage;
+							} else {
+								if (parseInt(item.Usage) > 0)
+									bigtext = item.Usage;
+							}
 							if (item.Type != "P1 Smart Meter") {
 								if ($scope.config.DashboardType == 0) {
 									if (typeof item.CounterToday != 'undefined') {
@@ -1484,18 +1514,18 @@ define(['app', 'livesocket'], function (app) {
 								}
 							}
 						}
-						if (typeof item.CounterDeliv != 'undefined') {
-							if (item.CounterDeliv != 0) {
-								if (item.UsageDeliv.charAt(0) != 0) {
-									bigtext = '-' + item.UsageDeliv;
-								}
-								status += '<br>';
-								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-									status += 'R: ' + item.CounterDelivToday;
-								}
-								else {
-									status += '' + $.t("Return") + ': ' + item.CounterDelivToday;
-								}
+						if ( (typeof item.CounterDeliv != 'undefined') && (item.CounterDeliv != 0) ) {
+							if (item.UsageDeliv.charAt(0) != 0) {
+								if (parseInt(item.Usage) > 0)
+									bigtext += ', ';
+								bigtext += '-' + item.UsageDeliv;
+							}
+							status += '<br>';
+							if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+								status += 'R: ' + item.CounterDelivToday;
+							}
+							else {
+								status += $.t("Return") + ': ' + item.CounterDelivToday;
 							}
 						}
 
@@ -1523,6 +1553,7 @@ define(['app', 'livesocket'], function (app) {
 					}
 				}
 			} //Utility Sensors
+			RefreshLiveSearch();
 		}
 
 		RefreshFavorites = function () {
@@ -1532,7 +1563,7 @@ define(['app', 'livesocket'], function (app) {
 					bFavorites = 0;
 				}
 			}
-			livesocket.getJson("json.htm?type=devices&filter=all&used=true&favorite=" + bFavorites + "&order=[Order]&plan=" + window.myglobals.LastPlanSelected + "&lastupdate=" + $scope.LastUpdateTime, function (data) {
+			livesocket.getJson("json.htm?type=command&param=getdevices&filter=all&used=true&favorite=" + bFavorites + "&order=[Order]&plan=" + window.myglobals.LastPlanSelected + "&lastupdate=" + $scope.LastUpdateTime, function (data) {
 				if (typeof data.ServerTime != 'undefined') {
 					$rootScope.SetTimeAndSun(data.Sunrise, data.Sunset, data.ServerTime);
 				}
@@ -1558,35 +1589,10 @@ define(['app', 'livesocket'], function (app) {
 			var bHaveAddedDivider = false;
 			var htmlcontent = "";
 			var bShowRoomplan = false;
-			$.RoomPlans = [];
+			//$.RoomPlans = [];
 
 			$("body").removeClass();
 			$("body").addClass("dashboard");
-
-			$.ajax({
-				url: "json.htm?type=plans",
-				async: false,
-				dataType: 'json',
-				success: function (data) {
-					if (typeof data.result != 'undefined') {
-						var totalItems = data.result.length;
-						if (totalItems > 0) {
-							bShowRoomplan = true;
-							//				if (window.myglobals.ismobile==true) {
-							//				bShowRoomplan=false;
-							//		}
-							if (bShowRoomplan == true) {
-								$.each(data.result, function (i, item) {
-									$.RoomPlans.push({
-										idx: item.idx,
-										name: item.Name
-									});
-								});
-							}
-						}
-					}
-				}
-			});
 
 			var bFavorites = 1;
 			var roomPlanId = $routeParams.room || window.myglobals.LastPlanSelected;
@@ -1598,7 +1604,7 @@ define(['app', 'livesocket'], function (app) {
 			}
 
 			$.ajax({
-				url: "json.htm?type=devices&filter=all&used=true&favorite=" + bFavorites + "&order=[Order]&plan=" + roomPlanId,
+				url: "json.htm?type=command&param=getdevices&filter=all&used=true&favorite=" + bFavorites + "&order=[Order]&plan=" + roomPlanId,
 				async: false,
 				dataType: 'json',
 				success: function (data) {
@@ -1630,8 +1636,11 @@ define(['app', 'livesocket'], function (app) {
 						$.each(data.result, function (i, item) {
 							//Scenes/Groups
 							if (
-								(item.Type.indexOf('Scene') == 0) ||
-								(item.Type.indexOf('Group') == 0)
+								($scope.config.EnableTabScenes) &&
+								(
+									(item.Type.indexOf('Scene') == 0) ||
+									(item.Type.indexOf('Group') == 0)
+								)
 							) {
 								totdevices += 1;
 								if (jj == 0) {
@@ -1664,7 +1673,7 @@ define(['app', 'livesocket'], function (app) {
 								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
 									xhtm +=
 										'\t    <tr id="scene_' + item.idx + '">\n' +
-										'\t      <td id="name" class="name">' + item.Name;
+										'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name;
 									xhtm +=
 										'</td>\n';
 									var status = "";
@@ -1682,7 +1691,7 @@ define(['app', 'livesocket'], function (app) {
 										}
 									}
 									xhtm +=
-										'\t      <td id="status" class="status">' + status + '</td>\n' +
+										'\t      <td id="status" class="status nowrap">' + status + '</td>\n' +
 										'\t    </tr>\n';
 								}
 								else {
@@ -1693,7 +1702,7 @@ define(['app', 'livesocket'], function (app) {
 										xhtm = '\t<div class="span3 movable" id="scene_' + item.idx + '">\n';
 									}
 									var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
-									xhtm += '\t  <div id="bstatus" class="item ' + backgroundClass + '">\n';
+									xhtm += '\t  <div id="bstatus" class="item itemBlock ' + backgroundClass + '">\n';
 									if (item.Type.indexOf('Scene') == 0) {
 										xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
 									}
@@ -1702,7 +1711,7 @@ define(['app', 'livesocket'], function (app) {
 									}
 									xhtm +=
 										'\t    <t>\n' +
-										'\t      <td id="name" class="name">' + item.Name + '</td>\n' +
+										'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n' +
 										'\t      <td id="bigtext" class="bigtext"><span>';
 									var bigtext = TranslateStatusShort(item.Status);
 									if (item.UsedByCamera == true) {
@@ -1752,12 +1761,12 @@ define(['app', 'livesocket'], function (app) {
 							htmlcontent += '</section>';
 						}
 
-
 						//light devices
 						jj = 0;
 						bHaveAddedDivider = false;
 						$.each(data.result, function (i, item) {
 							if (
+								($scope.config.EnableTabLights) &&
 								(
 									(item.Type.indexOf('Light') == 0) ||
 									(item.SubType == "Smartwares Mode") ||
@@ -1811,7 +1820,7 @@ define(['app', 'livesocket'], function (app) {
 								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
 									xhtm +=
 										'\t    <tr id="light_' + item.idx + '">\n' +
-										'\t      <td id="name" class="name">' + item.Name;
+										'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name;
 									xhtm +=
 										'</td>\n';
 									var status = TranslateStatus(item.Status) + " ";
@@ -2072,7 +2081,7 @@ define(['app', 'livesocket'], function (app) {
 										}
 									}
 									xhtm +=
-										'\t      <td id="status" class="status">' + status + '</td>\n' +
+										'\t      <td id="status" class="status nowrap">' + status + '</td>\n' +
 										'\t    </tr>\n';
 									if (item.SwitchType == "Dimmer") {
 										xhtm += '<tr>';
@@ -2094,9 +2103,7 @@ define(['app', 'livesocket'], function (app) {
 									}
 									else if (
 										(item.SwitchType == "Blinds Percentage")
-										|| (item.SwitchType == "Blinds Percentage Inverted")
 										|| (item.SwitchType == "Blinds + Stop")
-										|| (item.SwitchType == "Blinds Inverted + Stop")
 									) {
 										xhtm += '<tr>';
 										xhtm += '<td colspan="2" style="border:0px solid red; padding-top:10px; padding-bottom:10px;">';
@@ -2150,15 +2157,12 @@ define(['app', 'livesocket'], function (app) {
 									else if ($scope.config.DashboardType == 1) {
 										xhtm = '\t<div class="span3 movable" id="light_' + item.idx + '">\n';
 									}
-									xhtm += '\t  <div id="bstatus" class="item ' + backgroundClass + '">\n';
+									xhtm += '\t  <div id="bstatus" class="item itemBlock ' + backgroundClass + '">\n';
 									if (
 										(item.Type.indexOf('Blind') == 0)
 										|| (item.SwitchType == "Blinds")
-										|| (item.SwitchType == "Blinds Inverted")
 										|| (item.SwitchType == "Blinds Percentage")
-										|| (item.SwitchType == "Blinds Percentage Inverted")
 										|| (item.SwitchType == "Blinds + Stop")
-										|| (item.SwitchType == "Blinds Inverted + Stop")
 										|| (item.SwitchType.indexOf("Venetian Blinds") == 0)
 										|| (item.SwitchType.indexOf("Media Player") == 0)
 									) {
@@ -2179,7 +2183,6 @@ define(['app', 'livesocket'], function (app) {
 											|| (item.SubType.indexOf('Confexx') == 0)
 											|| (item.SwitchType.indexOf("Venetian Blinds") == 0)
 											|| (item.SwitchType == "Blinds + Stop")
-											|| (item.SwitchType == "Blinds Inverted + Stop")
 										) {
 											xhtm += '\t    <table id="itemtablesmalltrippleicon" id="itemtablesmalltripleicon" border="0" cellpadding="0" cellspacing="0">\n';
 										}
@@ -2192,7 +2195,7 @@ define(['app', 'livesocket'], function (app) {
 									}
 									xhtm +=
 										'\t    <tr>\n' +
-										'\t      <td id="name" class="name">' + item.Name + '</td>\n' +
+										'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n' +
 										'\t      <td id="bigtext" class="bigtext"><span>';
 									var bigtext = TranslateStatusShort(item.Status);
 									if (item.UsedByCamera == true) {
@@ -2316,6 +2319,10 @@ define(['app', 'livesocket'], function (app) {
 									}
 									else if (item.SwitchType == "Dimmer") {
 										if (item.CustomImage == 0) item.Image = item.TypeImg;
+										if (typeof item.Image == 'undefined') {
+											item.CustomImage = 0;
+											item.Image = item.TypeImg;
+										}
 										item.Image = item.Image.charAt(0).toUpperCase() + item.Image.slice(1);
 										if (
 											(item.Status == 'On') ||
@@ -2402,16 +2409,16 @@ define(['app', 'livesocket'], function (app) {
 										}
 									}
 									else if (item.SubType.indexOf("Itho") == 0) {
-										xhtm += '\t      <td id="img" class="img img1"><img src="images/Fan48_On.png" height="40" width="40" class="lcursor" onclick="ShowIthoPopup(event, ' + item.idx + ',  ' + item.Protected + ');"></td>\n';
+										xhtm += '\t      <td id="img" class="img img1"><img src="images/Fan48_On.png" height="40" width="40" class="lcursor" onclick="ShowIthoPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + window.myglobals.ismobile + ');"></td>\n';
 									}
 									else if (item.SubType.indexOf("Lucci Air DC") == 0) {
-										xhtm += '\t      <td id="img" class="img img1"><img src="images/Fan48_On.png" height="40" width="40" class="lcursor" onclick="ShowLucciDCPopup(event, ' + item.idx + ',  ' + item.Protected + ');"></td>\n';
+										xhtm += '\t      <td id="img" class="img img1"><img src="images/Fan48_On.png" height="40" width="40" class="lcursor" onclick="ShowLucciDCPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + window.myglobals.ismobile + ');"></td>\n';
 									}
 									else if (
 										(item.SubType.indexOf("Lucci") == 0) ||
 										(item.SubType.indexOf("Westinghouse") == 0)
 									) {
-										xhtm += '\t      <td id="img" class="img img1"><img src="images/Fan48_On.png" height="40" width="40" class="lcursor" onclick="ShowLucciPopup(event, ' + item.idx + ',  ' + item.Protected + ');"></td>\n';
+										xhtm += '\t      <td id="img" class="img img1"><img src="images/Fan48_On.png" height="40" width="40" class="lcursor" onclick="ShowLucciPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + window.myglobals.ismobile + ');"></td>\n';
 									}
 									else {
 										if (
@@ -2458,14 +2465,8 @@ define(['app', 'livesocket'], function (app) {
 									else if (item.SwitchType == "Blinds Percentage") {
 										xhtm += '<td class="input"><div style="margin-left:94px; margin-top: 7px;" class="dimslider dimslidersmalldouble" id="light_' + item.idx + '_slider" data-idx="' + item.idx + '" data-type="blinds" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div></td>';
 									}
-									else if (item.SwitchType == "Blinds Percentage Inverted") {
-										xhtm += '<td class="input"><div style="margin-left:94px; margin-top: 7px;" class="dimslider dimslidersmalldouble" id="light_' + item.idx + '_slider" data-idx="' + item.idx + '" data-type="blinds_inv" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div></td>';
-									}
 									else if (item.SwitchType == "Blinds + Stop") {
 										xhtm += '<td class="input"><div style="margin-left:124px; margin-top: 7px;" class="dimslider dimslidersmalltripple" id="light_' + item.idx + '_slider" data-idx="' + item.idx + '" data-type="blinds" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div></td>';
-									}
-									else if (item.SwitchType == "Blinds Inverted + Stop") {
-										xhtm += '<td class="input"><div style="margin-left:124px; margin-top: 7px;" class="dimslider dimslidersmalltripple" id="light_' + item.idx + '_slider" data-idx="' + item.idx + '" data-type="blinds_inv" data-maxlevel="' + item.MaxDimLevel + '" data-isprotected="' + item.Protected + '" data-svalue="' + item.LevelInt + '"></div></td>';
 									}
 									else if (item.SwitchType == "Selector") {
 										if (item.SelectorStyle === 0) {
@@ -2523,374 +2524,377 @@ define(['app', 'livesocket'], function (app) {
 						}
 
 						//Temperature Sensors
-						jj = 0;
-						bHaveAddedDivider = false;
-						$.each(data.result, function (i, item) {
-							if (
-								((typeof item.Temp != 'undefined') || (typeof item.Humidity != 'undefined') || (typeof item.Chill != 'undefined'))
-							) {
-								totdevices += 1;
-								if (jj == 0) {
-									//first time
-									htmlcontent += '<section class="dashCategory" id="dashTemperature">';
-									if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-										if (htmlcontent != "") {
-											htmlcontent += '<br>';
-										}
-										htmlcontent += '\t    <table class="mobileitem">\n';
-										htmlcontent += '\t    <thead>\n';
-										htmlcontent += '\t    <tr>\n';
-										htmlcontent += '\t    		<th>' + $.t('Temperature Sensors') + '</th>\n';
-										htmlcontent += '\t    		<th style="text-align:right"><a id="cTemperature" href="javascript:SwitchLayout(\'Temperature\')"><img src="images/next.png"></a></th>\n';
-										htmlcontent += '\t    </tr>\n';
-										htmlcontent += '\t    </thead>\n';
-									}
-									else {
-										htmlcontent += '<h2>' + $.t('Temperature Sensors') + ':</h2>\n';
-									}
-								}
-								if (jj % rowItems == 0) {
-									//add devider
-									if (bHaveAddedDivider == true) {
-										//close previous devider
-										htmlcontent += '</div>\n';
-									}
-									htmlcontent += '<div class="row divider">\n';
-									bHaveAddedDivider = true;
-								}
-								var xhtm = "";
-
-								var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
-
-								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-									var vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-
-									xhtm +=
-										'\t    <tr id="temp_' + item.idx + '">\n' +
-										'\t      <td id="name" class="name">' + vname + '</td>\n';
-									var status = "";
-									var bHaveBefore = false;
-									if (typeof item.Temp != 'undefined') {
-										if ($rootScope.DisplayTrend(item.trend))
-										{
-											status += '<img src="images/arrow_' + $rootScope.TrendState(item.trend) + '.png" width="14" height="15">';
-										}
-										status += item.Temp + '&deg; ' + $scope.config.TempSign;
-										bHaveBefore = true;
-									}
-									if (typeof item.Chill != 'undefined') {
-										if (bHaveBefore) {
-											status += ', ';
-										}
-										status += $.t('Chill') + ': ' + item.Chill + '&deg; ' + $scope.config.TempSign;
-										bHaveBefore = true;
-									}
-									if (typeof item.Humidity != 'undefined') {
-										if (bHaveBefore == true) {
-											status += ', ';
-										}
-										status += item.Humidity + ' %';
-									}
-									if (typeof item.HumidityStatus != 'undefined') {
-										status += ' (' + $.t(item.HumidityStatus) + ')';
-									}
-									if (typeof item.DewPoint != 'undefined') {
-										status += "<br>" + $.t("Dew Point") + ": " + item.DewPoint + '&deg; ' + $scope.config.TempSign;
-									}
-									xhtm +=
-										'\t      <td id="status" class="status">' + status + '</td>\n' +
-										'\t    </tr>\n';
-								}
-								else {
-									if ($scope.config.DashboardType == 0) {
-										xhtm = '\t<div class="span4 movable" id="temp_' + item.idx + '">\n';
-									}
-									else if ($scope.config.DashboardType == 1) {
-										xhtm = '\t<div class="span3 movable" id="temp_' + item.idx + '">\n';
-									}
-									xhtm += '\t  <div id="bstatus" class="item ' + backgroundClass + '">\n';
-									xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
-									xhtm += '\t    <tr>\n';
-									xhtm += '\t      <td id="name" class="name">' + item.Name + '</td>\n';
-									xhtm += '\t      <td id="bigtext" class="bigtext"><span>';
-									var bigtext = "";
-									if (typeof item.Temp != 'undefined') {
-										if ($rootScope.DisplayTrend(item.trend))
-										{
-											bigtext += '<img src="images/arrow_' + $rootScope.TrendState(item.trend) + '.png" width="14" height="15">';
-										}
-										bigtext += item.Temp + '\u00B0 ' + $scope.config.TempSign;
-									}
-									if (typeof item.Humidity != 'undefined') {
-										if (bigtext != "") {
-											bigtext += ' / ';
-										}
-										bigtext += item.Humidity + '%';
-									}
-									if (typeof item.Chill != 'undefined') {
-										if (bigtext != "") {
-											bigtext += ' / ';
-										}
-										bigtext += item.Chill + '\u00B0 ' + $scope.config.TempSign;
-									}
-									xhtm += bigtext + '</span></td>\n';
-									xhtm += '\t      <td id="img" class="img img1"><a href="#/Devices/' + item.idx + '/Log"><img src="images/';
-									if (typeof item.Temp != 'undefined') {
-										xhtm += GetTemp48Item(item.Temp);
-									}
-									else {
-										if (item.Type == "Humidity") {
-											xhtm += "gauge48.png";
+						if ($scope.config.EnableTabTemp) {
+							jj = 0;
+							bHaveAddedDivider = false;
+							$.each(data.result, function (i, item) {
+								if (
+									((typeof item.Temp != 'undefined') || (typeof item.Humidity != 'undefined') || (typeof item.Chill != 'undefined'))
+								) {
+									totdevices += 1;
+									if (jj == 0) {
+										//first time
+										htmlcontent += '<section class="dashCategory" id="dashTemperature">';
+										if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+											if (htmlcontent != "") {
+												htmlcontent += '<br>';
+											}
+											htmlcontent += '\t    <table class="mobileitem">\n';
+											htmlcontent += '\t    <thead>\n';
+											htmlcontent += '\t    <tr>\n';
+											htmlcontent += '\t    		<th>' + $.t('Temperature Sensors') + '</th>\n';
+											htmlcontent += '\t    		<th style="text-align:right"><a id="cTemperature" href="javascript:SwitchLayout(\'Temperature\')"><img src="images/next.png"></a></th>\n';
+											htmlcontent += '\t    </tr>\n';
+											htmlcontent += '\t    </thead>\n';
 										}
 										else {
-											xhtm += GetTemp48Item(item.Chill);
+											htmlcontent += '<h2>' + $.t('Temperature Sensors') + ':</h2>\n';
 										}
 									}
-									xhtm += '" class="lcursor" height="40" width="40"></a></td>\n' +
-										'\t      <td id="status" class="status">';
-									var bHaveBefore = false;
-									if (typeof item.HumidityStatus != 'undefined') {
-										xhtm += $.t(item.HumidityStatus);
-										bHaveBefore = true;
-									}
-									if (typeof item.DewPoint != 'undefined') {
-										if (bHaveBefore == true) {
-											xhtm += ', ';
+									if (jj % rowItems == 0) {
+										//add devider
+										if (bHaveAddedDivider == true) {
+											//close previous devider
+											htmlcontent += '</div>\n';
 										}
-										xhtm += $.t("Dew Point") + ": " + item.DewPoint + '&deg; ' + $scope.config.TempSign;
+										htmlcontent += '<div class="row divider">\n';
+										bHaveAddedDivider = true;
 									}
-									xhtm +=
-										'</td>\n' +
-										'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
-										'\t    </tr>\n' +
-										'\t    </table>\n' +
-										'\t  </div><!--item end-->\n' +
-										'\t</div>\n';
-								}
-								htmlcontent += xhtm;
-								jj += 1;
+									var xhtm = "";
 
-							}
-						}); //temp devices
-						if (bHaveAddedDivider == true) {
-							//close previous devider
-							htmlcontent += '</div>\n';
-						}
-						if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-							htmlcontent += '\t    </table>\n';
-						}
-						if (jj > 0) {
-							htmlcontent += '</section>';
-						}
+									var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
 
-
-						//Weather Sensors
-						jj = 0;
-						bHaveAddedDivider = false;
-						$.each(data.result, function (i, item) {
-							if (
-								((typeof item.Rain != 'undefined') || (typeof item.Visibility != 'undefined') || (typeof item.UVI != 'undefined') || (typeof item.Radiation != 'undefined') || (typeof item.Direction != 'undefined') || (typeof item.Barometer != 'undefined'))
-							) {
-								totdevices += 1;
-								if (jj == 0) {
-									//first time
-									htmlcontent += '<section class="dashCategory" id="dashWeather">';
 									if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-										if (htmlcontent != "") {
-											htmlcontent += '<br>';
-										}
-										htmlcontent += '\t    <table class="mobileitem">\n';
-										htmlcontent += '\t    <thead>\n';
-										htmlcontent += '\t    <tr>\n';
-										htmlcontent += '\t    		<th>' + $.t('Weather Sensors') + '</th>\n';
-										htmlcontent += '\t    		<th style="text-align:right"><a id="cWeather" href="javascript:SwitchLayout(\'Weather\')"><img src="images/next.png"></a></th>\n';
-										htmlcontent += '\t    </tr>\n';
-										htmlcontent += '\t    </thead>\n';
-									}
-									else {
-										htmlcontent += '<h2>' + $.t('Weather Sensors') + ':</h2>\n';
-									}
-								}
-								if (jj % rowItems == 0) {
-									//add devider
-									if (bHaveAddedDivider == true) {
-										//close previous devider
-										htmlcontent += '</div>\n';
-									}
-									htmlcontent += '<div class="row divider">\n';
-									bHaveAddedDivider = true;
-								}
-								// generate protected/timeout/lowbattery status
-								var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
-								var xhtm = "";
-								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-									var vname = item.Name;
-									if (typeof item.UVI != 'undefined') {
-										vname = '<img src="images/next.png" onclick="ShowUVLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
-									}
-									else if (typeof item.Visibility != 'undefined' || typeof item.Radiation != 'undefined') {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (typeof item.Direction != 'undefined') {
-										vname = '<img src="images/next.png" onclick="ShowWindLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
-									}
-									else if (typeof item.Rain != 'undefined') {
-										vname = '<img src="images/next.png" onclick="ShowRainLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
-									}
-									else if (typeof item.Barometer != 'undefined') {
-										vname = '<img src="images/next.png" onclick="ShowBaroLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
-									}
-									xhtm +=
-										'\t    <tr id="weather_' + item.idx + '">\n' +
-										'\t      <td id="name" class="name">' + vname + '</td>\n';
-									var status = "";
-									if (typeof item.Rain != 'undefined') {
-										status += item.Rain + ' mm';
-										if (typeof item.RainRate != 'undefined') {
-											status += ', Rate: ' + item.RainRate + ' mm/h';
-										}
-									}
-									else if (typeof item.Visibility != 'undefined') {
-										status += item.Data;
-									}
-									else if (typeof item.UVI != 'undefined') {
-										status += item.UVI + ' UVI';
-									}
-									else if (typeof item.Radiation != 'undefined') {
-										status += item.Data;
-									}
-									else if (typeof item.Direction != 'undefined') {
-										status = item.Direction + ' ' + item.DirectionStr;
-										if (typeof item.Speed != 'undefined') {
-											status += ', ' + $.t('Speed') + ': ' + item.Speed + ' ' + $scope.config.WindSign;
-										}
-										if (typeof item.Gust != 'undefined') {
-											status += ', ' + $.t('Gust') + ': ' + item.Gust + ' ' + $scope.config.WindSign;
-										}
-									}
-									else if (typeof item.Barometer != 'undefined') {
-										if (typeof item.ForecastStr != 'undefined') {
-											status = item.Barometer + ' hPa, ' + $.t('Prediction') + ': ' + $.t(item.ForecastStr);
-										}
-										else {
-											status = item.Barometer + ' hPa';
-										}
-										if (typeof item.Altitude != 'undefined') {
-											status += ', Altitude: ' + item.Altitude + ' meter';
-										}
-									}
-									xhtm +=
-										'\t      <td id="status" class="status">' + status + '</td>\n' +
-										'\t    </tr>\n';
-								}
-								else {
-									if ($scope.config.DashboardType == 0) {
-										xhtm = '\t<div class="span4 movable" id="weather_' + item.idx + '">\n';
-									}
-									else if ($scope.config.DashboardType == 1) {
-										xhtm = '\t<div class="span3 movable" id="weather_' + item.idx + '">\n';
-									}
-									xhtm += '\t  <div id="bstatus" class="item ' + backgroundClass + '">\n';
-									xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
-									xhtm += '\t    <tr>\n';
-									xhtm += '\t      <td id="name" class="name">' + item.Name + '</td>\n';
-									xhtm += '\t      <td id="bigtext" class="bigtext"><span>';
-									if (typeof item.Barometer != 'undefined') {
-										xhtm += item.Barometer + ' hPa';
-									}
-									else if (typeof item.Rain != 'undefined') {
-										xhtm += item.Rain + ' mm';
-									}
-									else if (typeof item.Visibility != 'undefined') {
-										xhtm += item.Data;
-									}
-									else if (typeof item.UVI != 'undefined') {
-										xhtm += item.UVI + ' UVI';
-									}
-									else if (typeof item.Radiation != 'undefined') {
-										xhtm += item.Data;
-									}
-									else if (typeof item.Direction != 'undefined') {
-										xhtm += item.DirectionStr;
-										if (typeof item.Speed != 'undefined') {
-											xhtm += ' / ' + item.Speed + ' ' + $scope.config.WindSign;
-										}
-										else if (typeof item.Gust != 'undefined') {
-											xhtm += ' / ' + item.Gust + ' ' + $scope.config.WindSign;
-										}
-									}
-									xhtm += '</span></td>\n';
-									xhtm += '\t      ';
-									if (typeof item.Rain != 'undefined') {
-										xhtm += '<td id="img" class="img img1"><img src="images/Rain48_On.png" class="lcursor" onclick="ShowRainLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
-											'\t      <td id="status" class="status">';
-										if (typeof item.RainRate != 'undefined') {
-											xhtm += 'Rate: ' + item.RainRate + ' mm/h';
-										}
-									}
-									else if (typeof item.Visibility != 'undefined') {
-										xhtm += '<td id="img" class="img img1"><a href="#/Devices/' + item.idx + '/Log"><img src="images/visibility48.png" class="lcursor" height="40" width="40"></a></td>\n' +
-											'\t      <td id="status" class="status">';
-									}
-									else if (typeof item.UVI != 'undefined') {
-										xhtm += '<td id="img" class="img img1"><img src="images/uv48.png" class="lcursor" onclick="ShowUVLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
-											'\t      <td id="status" class="status">';
-									}
-									else if (typeof item.Radiation != 'undefined') {
-										xhtm += '<td id="img" class="img img1"><a href="#/Devices/' + item.idx + '/Log"><img src="images/radiation48.png" class="lcursor" height="40" width="40"></a></td>\n' +
-											'\t      <td id="status" class="status">';
-									}
-									else if (typeof item.Direction != 'undefined') {
-										xhtm += '<td id="img" class="img img1"><img src="images/Wind' + item.DirectionStr + '.png" class="lcursor" onclick="ShowWindLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
-											'\t      <td id="status" class="status">' + item.Direction + ' ' + item.DirectionStr;
-										if (typeof item.Speed != 'undefined') {
-											xhtm += ', ' + $.t('Speed') + ': ' + item.Speed + ' ' + $scope.config.WindSign;
-										}
-										if (typeof item.Gust != 'undefined') {
-											xhtm += ', ' + $.t('Gust') + ': ' + item.Gust + ' ' + $scope.config.WindSign;
-										}
-										xhtm += '<br>\n';
+										var vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+
+										xhtm +=
+											'\t    <tr id="temp_' + item.idx + '">\n' +
+											'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + vname + '</td>\n';
+										var status = "";
+										var bHaveBefore = false;
 										if (typeof item.Temp != 'undefined') {
-											xhtm += $.t('Temp') + ': ' + item.Temp + '&deg; ' + $scope.config.TempSign;
+											if ($rootScope.DisplayTrend(item.trend))
+											{
+												status += '<img src="images/arrow_' + $rootScope.TrendState(item.trend) + '.png" width="14" height="15">';
+											}
+											status += item.Temp + '&deg; ' + $scope.config.TempSign;
+											bHaveBefore = true;
 										}
 										if (typeof item.Chill != 'undefined') {
-											if (typeof item.Temp != 'undefined') {
+											if (bHaveBefore) {
+												status += ', ';
+											}
+											status += $.t('Chill') + ': ' + item.Chill + '&deg; ' + $scope.config.TempSign;
+											bHaveBefore = true;
+										}
+										if (typeof item.Humidity != 'undefined') {
+											if (bHaveBefore == true) {
+												status += ', ';
+											}
+											status += item.Humidity + ' %';
+										}
+										if (typeof item.HumidityStatus != 'undefined') {
+											status += ' (' + $.t(item.HumidityStatus) + ')';
+										}
+										if (typeof item.DewPoint != 'undefined') {
+											status += "<br>" + $.t("Dew Point") + ": " + item.DewPoint + '&deg; ' + $scope.config.TempSign;
+										}
+										xhtm +=
+											'\t      <td id="status" class="status">' + status + '</td>\n' +
+											'\t    </tr>\n';
+									}
+									else {
+										if ($scope.config.DashboardType == 0) {
+											xhtm = '\t<div class="span4 movable" id="temp_' + item.idx + '">\n';
+										}
+										else if ($scope.config.DashboardType == 1) {
+											xhtm = '\t<div class="span3 movable" id="temp_' + item.idx + '">\n';
+										}
+										xhtm += '\t  <div id="bstatus" class="item itemBlock ' + backgroundClass + '">\n';
+										xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
+										xhtm += '\t    <tr>\n';
+										xhtm += '\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n';
+										xhtm += '\t      <td id="bigtext" class="bigtext"><span>';
+										var bigtext = "";
+										if (typeof item.Temp != 'undefined') {
+											if ($rootScope.DisplayTrend(item.trend))
+											{
+												bigtext += '<img src="images/arrow_' + $rootScope.TrendState(item.trend) + '.png" width="14" height="15">';
+											}
+											bigtext += item.Temp + '\u00B0 ' + $scope.config.TempSign;
+										}
+										if (typeof item.Humidity != 'undefined') {
+											if (bigtext != "") {
+												bigtext += ' / ';
+											}
+											bigtext += item.Humidity + '%';
+										}
+										if (typeof item.Chill != 'undefined') {
+											if (bigtext != "") {
+												bigtext += ' / ';
+											}
+											bigtext += item.Chill + '\u00B0 ' + $scope.config.TempSign;
+										}
+										xhtm += bigtext + '</span></td>\n';
+										xhtm += '\t      <td id="img" class="img img1"><a href="#/Devices/' + item.idx + '/Log"><img src="images/';
+										if (typeof item.Temp != 'undefined') {
+											xhtm += GetTemp48Item(item.Temp);
+										}
+										else {
+											if (item.Type == "Humidity") {
+												xhtm += "gauge48.png";
+											}
+											else {
+												xhtm += GetTemp48Item(item.Chill);
+											}
+										}
+										xhtm += '" class="lcursor" height="40" width="40"></a></td>\n' +
+											'\t      <td id="status" class="status">';
+										var bHaveBefore = false;
+										if (typeof item.HumidityStatus != 'undefined') {
+											xhtm += $.t(item.HumidityStatus);
+											bHaveBefore = true;
+										}
+										if (typeof item.DewPoint != 'undefined') {
+											if (bHaveBefore == true) {
 												xhtm += ', ';
 											}
-											xhtm += $.t('Chill') + ': ' + item.Chill + '&deg; ' + $scope.config.TempSign;
+											xhtm += $.t("Dew Point") + ": " + item.DewPoint + '&deg; ' + $scope.config.TempSign;
 										}
+										xhtm +=
+											'</td>\n' +
+											'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
+											'\t    </tr>\n' +
+											'\t    </table>\n' +
+											'\t  </div><!--item end-->\n' +
+											'\t</div>\n';
 									}
-									else if (typeof item.Barometer != 'undefined') {
-										xhtm += '<td id="img" class="img img1"><img src="images/baro48.png" class="lcursor" onclick="ShowBaroLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
-											'\t      <td id="status" class="status">';
-										if (typeof item.ForecastStr != 'undefined') {
-											xhtm += $.t('Prediction') + ': ' + $.t(item.ForecastStr);
-										}
-										if (typeof item.Altitude != 'undefined') {
-											xhtm += ', Altitude: ' + item.Altitude + ' meter';
-										}
-									}
-									xhtm +=
-										'</td>\n' +
-										'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
-										'\t    </tr>\n' +
-										'\t    </table>\n' +
-										'\t  </div><!--item end-->\n' +
-										'\t</div>\n';
+									htmlcontent += xhtm;
+									jj += 1;
+
 								}
-								htmlcontent += xhtm;
-								jj += 1;
+							}); //temp devices
+							if (bHaveAddedDivider == true) {
+								//close previous devider
+								htmlcontent += '</div>\n';
 							}
-						}); //weather devices
-						if (bHaveAddedDivider == true) {
-							//close previous devider
-							htmlcontent += '</div>\n';
+							if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+								htmlcontent += '\t    </table>\n';
+							}
+							if (jj > 0) {
+								htmlcontent += '</section>';
+							}
 						}
-						if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-							htmlcontent += '\t    </table>\n';
-						}
-						if (jj > 0) {
-							htmlcontent += '</section>';
+
+						//Weather Sensors
+						if ($scope.config.EnableTabWeather) {
+							jj = 0;
+							bHaveAddedDivider = false;
+							$.each(data.result, function (i, item) {
+								if (
+									((typeof item.Rain != 'undefined') || (typeof item.Visibility != 'undefined') || (typeof item.UVI != 'undefined') || (typeof item.Radiation != 'undefined') || (typeof item.Direction != 'undefined') || (typeof item.Barometer != 'undefined'))
+								) {
+									totdevices += 1;
+									if (jj == 0) {
+										//first time
+										htmlcontent += '<section class="dashCategory" id="dashWeather">';
+										if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+											if (htmlcontent != "") {
+												htmlcontent += '<br>';
+											}
+											htmlcontent += '\t    <table class="mobileitem">\n';
+											htmlcontent += '\t    <thead>\n';
+											htmlcontent += '\t    <tr>\n';
+											htmlcontent += '\t    		<th>' + $.t('Weather Sensors') + '</th>\n';
+											htmlcontent += '\t    		<th style="text-align:right"><a id="cWeather" href="javascript:SwitchLayout(\'Weather\')"><img src="images/next.png"></a></th>\n';
+											htmlcontent += '\t    </tr>\n';
+											htmlcontent += '\t    </thead>\n';
+										}
+										else {
+											htmlcontent += '<h2>' + $.t('Weather Sensors') + ':</h2>\n';
+										}
+									}
+									if (jj % rowItems == 0) {
+										//add devider
+										if (bHaveAddedDivider == true) {
+											//close previous devider
+											htmlcontent += '</div>\n';
+										}
+										htmlcontent += '<div class="row divider">\n';
+										bHaveAddedDivider = true;
+									}
+									// generate protected/timeout/lowbattery status
+									var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
+									var xhtm = "";
+									if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+										var vname = item.Name;
+										if (typeof item.UVI != 'undefined') {
+											vname = '<img src="images/next.png" onclick="ShowUVLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
+										}
+										else if (typeof item.Visibility != 'undefined' || typeof item.Radiation != 'undefined') {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (typeof item.Direction != 'undefined') {
+											vname = '<img src="images/next.png" onclick="ShowWindLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
+										}
+										else if (typeof item.Rain != 'undefined') {
+											vname = '<img src="images/next.png" onclick="ShowRainLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
+										}
+										else if (typeof item.Barometer != 'undefined') {
+											vname = '<img src="images/next.png" onclick="ShowBaroLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
+										}
+										xhtm +=
+											'\t    <tr id="weather_' + item.idx + '">\n' +
+											'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + vname + '</td>\n';
+										var status = "";
+										if (typeof item.Rain != 'undefined') {
+											status += item.Rain + ' mm';
+											if (typeof item.RainRate != 'undefined') {
+												status += ', Rate: ' + item.RainRate + ' mm/h';
+											}
+										}
+										else if (typeof item.Visibility != 'undefined') {
+											status += item.Data;
+										}
+										else if (typeof item.UVI != 'undefined') {
+											status += item.UVI + ' UVI';
+										}
+										else if (typeof item.Radiation != 'undefined') {
+											status += item.Data;
+										}
+										else if (typeof item.Direction != 'undefined') {
+											status = item.Direction + ' ' + item.DirectionStr;
+											if (typeof item.Speed != 'undefined') {
+												status += ', ' + $.t('Speed') + ': ' + item.Speed + ' ' + $scope.config.WindSign;
+											}
+											if (typeof item.Gust != 'undefined') {
+												status += ', ' + $.t('Gust') + ': ' + item.Gust + ' ' + $scope.config.WindSign;
+											}
+										}
+										else if (typeof item.Barometer != 'undefined') {
+											if (typeof item.ForecastStr != 'undefined') {
+												status = item.Barometer + ' hPa, ' + $.t('Prediction') + ': ' + $.t(item.ForecastStr);
+											}
+											else {
+												status = item.Barometer + ' hPa';
+											}
+											if (typeof item.Altitude != 'undefined') {
+												status += ', Altitude: ' + item.Altitude + ' meter';
+											}
+										}
+										xhtm +=
+											'\t      <td id="status" class="status">' + status + '</td>\n' +
+											'\t    </tr>\n';
+									}
+									else {
+										if ($scope.config.DashboardType == 0) {
+											xhtm = '\t<div class="span4 movable" id="weather_' + item.idx + '">\n';
+										}
+										else if ($scope.config.DashboardType == 1) {
+											xhtm = '\t<div class="span3 movable" id="weather_' + item.idx + '">\n';
+										}
+										xhtm += '\t  <div id="bstatus" class="item itemBlock ' + backgroundClass + '">\n';
+										xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
+										xhtm += '\t    <tr>\n';
+										xhtm += '\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n';
+										xhtm += '\t      <td id="bigtext" class="bigtext"><span>';
+										if (typeof item.Barometer != 'undefined') {
+											xhtm += item.Barometer + ' hPa';
+										}
+										else if (typeof item.Rain != 'undefined') {
+											xhtm += item.Rain + ' mm';
+										}
+										else if (typeof item.Visibility != 'undefined') {
+											xhtm += item.Data;
+										}
+										else if (typeof item.UVI != 'undefined') {
+											xhtm += item.UVI + ' UVI';
+										}
+										else if (typeof item.Radiation != 'undefined') {
+											xhtm += item.Data;
+										}
+										else if (typeof item.Direction != 'undefined') {
+											xhtm += item.DirectionStr;
+											if (typeof item.Speed != 'undefined') {
+												xhtm += ' / ' + item.Speed + ' ' + $scope.config.WindSign;
+											}
+											else if (typeof item.Gust != 'undefined') {
+												xhtm += ' / ' + item.Gust + ' ' + $scope.config.WindSign;
+											}
+										}
+										xhtm += '</span></td>\n';
+										xhtm += '\t      ';
+										if (typeof item.Rain != 'undefined') {
+											xhtm += '<td id="img" class="img img1"><img src="images/Rain48_On.png" class="lcursor" onclick="ShowRainLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
+												'\t      <td id="status" class="status">';
+											if (typeof item.RainRate != 'undefined') {
+												xhtm += 'Rate: ' + item.RainRate + ' mm/h';
+											}
+										}
+										else if (typeof item.Visibility != 'undefined') {
+											xhtm += '<td id="img" class="img img1"><a href="#/Devices/' + item.idx + '/Log"><img src="images/visibility48.png" class="lcursor" height="40" width="40"></a></td>\n' +
+												'\t      <td id="status" class="status">';
+										}
+										else if (typeof item.UVI != 'undefined') {
+											xhtm += '<td id="img" class="img img1"><img src="images/uv48.png" class="lcursor" onclick="ShowUVLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
+												'\t      <td id="status" class="status">';
+										}
+										else if (typeof item.Radiation != 'undefined') {
+											xhtm += '<td id="img" class="img img1"><a href="#/Devices/' + item.idx + '/Log"><img src="images/radiation48.png" class="lcursor" height="40" width="40"></a></td>\n' +
+												'\t      <td id="status" class="status">';
+										}
+										else if (typeof item.Direction != 'undefined') {
+											xhtm += '<td id="img" class="img img1"><img src="images/Wind' + item.DirectionStr + '.png" class="lcursor" onclick="ShowWindLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
+												'\t      <td id="status" class="status">' + item.Direction + ' ' + item.DirectionStr;
+											if (typeof item.Speed != 'undefined') {
+												xhtm += ', ' + $.t('Speed') + ': ' + item.Speed + ' ' + $scope.config.WindSign;
+											}
+											if (typeof item.Gust != 'undefined') {
+												xhtm += ', ' + $.t('Gust') + ': ' + item.Gust + ' ' + $scope.config.WindSign;
+											}
+											xhtm += '<br>\n';
+											if (typeof item.Temp != 'undefined') {
+												xhtm += $.t('Temp') + ': ' + item.Temp + '&deg; ' + $scope.config.TempSign;
+											}
+											if (typeof item.Chill != 'undefined') {
+												if (typeof item.Temp != 'undefined') {
+													xhtm += ', ';
+												}
+												xhtm += $.t('Chill') + ': ' + item.Chill + '&deg; ' + $scope.config.TempSign;
+											}
+										}
+										else if (typeof item.Barometer != 'undefined') {
+											xhtm += '<td id="img" class="img img1"><img src="images/baro48.png" class="lcursor" onclick="ShowBaroLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n' +
+												'\t      <td id="status" class="status">';
+											if (typeof item.ForecastStr != 'undefined') {
+												xhtm += $.t('Prediction') + ': ' + $.t(item.ForecastStr);
+											}
+											if (typeof item.Altitude != 'undefined') {
+												xhtm += ', Altitude: ' + item.Altitude + ' meter';
+											}
+										}
+										xhtm +=
+											'</td>\n' +
+											'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
+											'\t    </tr>\n' +
+											'\t    </table>\n' +
+											'\t  </div><!--item end-->\n' +
+											'\t</div>\n';
+									}
+									htmlcontent += xhtm;
+									jj += 1;
+								}
+							}); //weather devices
+							if (bHaveAddedDivider == true) {
+								//close previous devider
+								htmlcontent += '</div>\n';
+							}
+							if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+								htmlcontent += '\t    </table>\n';
+							}
+							if (jj > 0) {
+								htmlcontent += '</section>';
+							}
 						}
 
 						//security devices
@@ -2931,7 +2935,7 @@ define(['app', 'livesocket'], function (app) {
 								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
 									xhtm +=
 										'\t    <tr id="security_' + item.idx + '">\n' +
-										'\t      <td id="name" class="name">' + item.Name + '</td>\n';
+										'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n';
 									var status = TranslateStatus(item.Status);
 
 									xhtm += '\t      <td id="status" class="status">';
@@ -2958,7 +2962,7 @@ define(['app', 'livesocket'], function (app) {
 										xhtm = '\t<div class="span3 movable" id="security_' + item.idx + '">\n';
 									}
 									var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
-									xhtm += '\t  <div id="bstatus" class="item ' + backgroundClass + '">\n';
+									xhtm += '\t  <div id="bstatus" class="item itemBlock ' + backgroundClass + '">\n';
 									if ($scope.config.DashboardType == 0) {
 										xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
 									}
@@ -2966,7 +2970,7 @@ define(['app', 'livesocket'], function (app) {
 										xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
 									}
 									xhtm += '\t    <tr>\n' +
-										'\t      <td id="name" class="name">' + item.Name + '</td>\n' +
+										'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n' +
 										'\t      <td id="bigtext" class="bigtext"><span>' + TranslateStatusShort(item.Status) + '</span></td>\n';
 
 									if (item.SubType == "Security Panel") {
@@ -3049,639 +3053,560 @@ define(['app', 'livesocket'], function (app) {
 							htmlcontent += '</section>';
 						}
 
-						//Gizmocuz: Don't know how did this ? But this should be under utility devices!
-						//Please do so
-						/*
-												//evohome devices
-												jj = 0;
-												bHaveAddedDivider = false;
-												$.each(data.result, function (i, item) {
-													if (item.Type.indexOf('Heating') == 0) {
-														totdevices += 1;
-														if (jj == 0) {
-															//first time
-															htmlcontent += '<section class="dashCategory" id="dashEvohome">';
-															if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-																if (htmlcontent != "") {
-																	htmlcontent += '<br>';
-																}
-																htmlcontent += '\t    <table class="mobileitem">\n';
-																htmlcontent += '\t    <thead>\n';
-																htmlcontent += '\t    <tr>\n';
-																htmlcontent += '\t    		<th>' + $.t('evohome Devices') + '</th>\n';
-																htmlcontent += '\t    		<th style="text-align:right"><a id="cevohome" href="javascript:SwitchLayout(\'LightSwitches\')"><img src="images/next.png"></a></th>\n';
-																htmlcontent += '\t    </tr>\n';
-																htmlcontent += '\t    </thead>\n';
-															}
-															else {
-																htmlcontent += '<h2>' + $.t('evohome Devices') + ':</h2>\n';
-															}
-														}
-														if (jj % rowItems == 0) {
-															//add devider
-															if (bHaveAddedDivider == true) {
-																//close previous devider
-																htmlcontent += '</div>\n';
-															}
-															htmlcontent += '<div class="row divider">\n';
-															bHaveAddedDivider = true;
-														}
-														var xhtm = "";
-														if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-															if (item.SubType == "Evohome") {
-																xhtm +=
-																	'\t    <tr id="evohome_' + item.idx + '">\n' +
-																	'\t      <td id="name" class="name">' + item.Name + '</td>\n';
-																xhtm += EvohomePopupMenu(item, 'evomobile');
-																xhtm += '\n\r  </tr>\n';
-															}
-														}
-														else {
-															if (item.SubType == "Evohome") {
-																if ($scope.config.DashboardType == 0) {
-																	xhtm = '\t<div class="span4 movable" id="evohome_' + item.idx + '">\n';
-																}
-																else if ($scope.config.DashboardType == 1) {
-																	xhtm = '\t<div class="span3 movable" id="evohome_' + item.idx + '">\n';
-																}
-																xhtm += '\t  <div class="item">\n';
-																if ($scope.config.DashboardType == 0) {
-																	xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
-																}
-																else if ($scope.config.DashboardType == 1) {
-																	xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
-																}
-																var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
-						
-																xhtm +=
-																	'\t    <tr class="' + backgroundClass + '">\n' +
-																	'\t      <td id="name" class="name ' + backgroundClass + '">' + item.Name + '</td>\n' +
-																	'\t      <td id="bigtext" class="bigtext"><span></span></td>\n';
-																xhtm += EvohomePopupMenu(item, 'evomini');
-																xhtm +=
-																	'\t      <td id="status" class="status">' + TranslateStatus(EvoDisplayTextMode(item.Status)) + '</td>\n' +
-																	'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
-																	'\t    </tr>\n' +
-																	'\t    </table>\n' +
-																	'\t  </div><!--item end-->\n' +
-																	'\t</div>\n';
-															}
-														}
-														htmlcontent += xhtm;
-														jj += 1;
-													}
-												}); //evohome devices
-												if (bHaveAddedDivider == true) {
-													//close previous devider
-													htmlcontent += '</div>\n';
-												}
-												if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-													htmlcontent += '\t    </table>\n';
-												}
-												if (jj > 0) {
-													htmlcontent += '</section>';
-												}
-						*/
 						//Utility Sensors
-						jj = 0;
-						bHaveAddedDivider = false;
-						$.each(data.result, function (i, item) {
-							if (
-								(
-									(typeof item.Counter != 'undefined') ||
-									(item.Type == "Current") ||
-									(item.Type == "Energy") ||
-									(item.SubType == "kWh") ||
-									(item.Type == "Current/Energy") ||
-									(item.Type == "Power") ||
-									(item.Type == "Air Quality") ||
-									(item.Type == "Lux") ||
-									(item.Type == "Weight") ||
-									(item.Type == "Usage") ||
-									(item.SubType == "Percentage") ||
-									((item.Type == "Thermostat") && (item.SubType == "SetPoint")) ||
-									(item.SubType == "Soil Moisture") ||
-									(item.SubType == "Leaf Wetness") ||
-									(item.SubType == "Voltage") ||
-									(item.SubType == "Distance") ||
-									(item.SubType == "Current") ||
-									(item.SubType == "Text") ||
-									(item.SubType == "Alert") ||
-									(item.SubType == "Pressure") ||
-									(item.SubType == "A/D") ||
-									(item.SubType == "Thermostat Mode") ||
-									(item.SubType == "Thermostat Fan Mode") ||
-									(item.SubType == "Fan") ||
-									(item.SubType == "Smartwares") ||
-									(item.SubType == "Waterflow") ||
-									(item.SubType == "Sound Level") ||
-									(item.SubType == "Custom Sensor")
-								)
-							) {
-								totdevices += 1;
-								if (jj == 0) {
-									//first time
-									htmlcontent += '<section class="dashCategory" id="dashUtility">';
-									// mobile util start
-									if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-										if (htmlcontent != "") {
-											htmlcontent += '<br>';
-										}
-										htmlcontent += '\t    <table class="mobileitem">\n';
-										htmlcontent += '\t    <thead>\n';
-										htmlcontent += '\t    <tr>\n';
-										htmlcontent += '\t    		<th>' + $.t('Utility Sensors') + '</th>\n';
-										htmlcontent += '\t    		<th style="text-align:right"><a id="cUtility" href="javascript:SwitchLayout(\'Utility\')"><img src="images/next.png"></a></th>\n';
-										htmlcontent += '\t    </tr>\n';
-										htmlcontent += '\t    </thead>\n';
-									}
-									else {
-										htmlcontent += '<h2>' + $.t('Utility Sensors') + ':</h2>\n';
-									}
-								}
-								if (jj % rowItems == 0) {
-									//add devider
-									if (bHaveAddedDivider == true) {
-										//close previous devider
-										htmlcontent += '</div>\n';
-									}
-									htmlcontent += '<div class="row divider">\n';
-									bHaveAddedDivider = true;
-								}
-								var xhtm = "";
-								if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-									var vname = item.Name;
-									if (typeof item.Counter != 'undefined') {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if ((item.Type == "Current") || (item.Type == "Current/Energy")) {
-										vname = '<img src="images/next.png" onclick="ShowCurrentLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\', ' + item.displaytype + ');" height="16" width="16">' + " " + item.Name;
-									}
-									else if ((item.Type == "Energy") || (item.SubType == "kWh") || (item.SubType == "Power")) {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.Type == "Air Quality") {
-										vname = '<img src="images/next.png" onclick="ShowAirQualityLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
-									}
-									else if (item.SubType == "Percentage") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Custom Sensor") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '48_On.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Fan") {
-										vname = '<img src="images/next.png" class="fanicon" onclick="ShowFanLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
-									}
-									else if (item.Type == "Lux") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.Type == "Usage") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Soil Moisture") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Distance") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if ((item.SubType == "Voltage") || (item.SubType == "Current") || (item.SubType == "A/D")) {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Text" || item.SubType == "Alert") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Pressure") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if ((item.Type == "Thermostat") && (item.SubType == "SetPoint")) {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Smartwares") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Sound Level") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-									else if (item.SubType == "Waterflow") {
-										vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
-									}
-
-									var status = "";
-									if (typeof item.Counter != 'undefined') {
-										if ($scope.config.DashboardType == 0) {
-											if (item.SubType == "Managed Counter") {
-												status = '' + item.Counter;
-											}
-											else {
-												status = '' + $.t("Usage") + ': ' + item.CounterToday;
-											}
-										}
-										else {
-											if ((typeof item.CounterDeliv != 'undefined') && (item.CounterDeliv != 0)) {
-												status = 'U: T: ' + item.CounterToday;
-											} else {
-												if (item.SubType == "Managed Counter") {
-													status = '' + item.Counter;
-												}
-												else {
-													status = 'T: ' + item.CounterToday;
-												}
-											}
-										}
-									}
-									else if (item.Type == "Current") {
-										status = item.Data;
-									}
-									else if (
+						if ($scope.config.EnableTabUtility) {
+							jj = 0;
+							bHaveAddedDivider = false;
+							$.each(data.result, function (i, item) {
+								if (
+									(
+										(typeof item.Counter != 'undefined') ||
+										(item.Type == "Current") ||
 										(item.Type == "Energy") ||
+										(item.SubType == "kWh") ||
 										(item.Type == "Current/Energy") ||
 										(item.Type == "Power") ||
-										(item.SubType == "kWh") ||
 										(item.Type == "Air Quality") ||
 										(item.Type == "Lux") ||
 										(item.Type == "Weight") ||
 										(item.Type == "Usage") ||
 										(item.SubType == "Percentage") ||
-										(item.SubType == "Fan") ||
+										((item.Type == "Setpoint") && (item.SubType == "SetPoint")) ||
 										(item.SubType == "Soil Moisture") ||
 										(item.SubType == "Leaf Wetness") ||
 										(item.SubType == "Voltage") ||
 										(item.SubType == "Distance") ||
 										(item.SubType == "Current") ||
+										(item.SubType == "Text") ||
+										(item.SubType == "Alert") ||
 										(item.SubType == "Pressure") ||
 										(item.SubType == "A/D") ||
+										(item.SubType == "Fan") ||
+										(item.SubType == "Smartwares") ||
 										(item.SubType == "Waterflow") ||
 										(item.SubType == "Sound Level") ||
 										(item.SubType == "Custom Sensor")
-									) {
-										if (typeof item.CounterToday != 'undefined') {
-											status += 'T: ' + item.CounterToday;
-										}
-										else {
-											status = item.Data;
-										}
-									}
-									else if (item.SubType == "Alert") {
-										var aLevel = item.Level;
-										if (aLevel > 4) aLevel = 4;
-										status = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2') + ' <img src="images/Alert48_' + aLevel + '.png" height="16" width="16">';
-									}
-									else if (item.SubType == "Text") {
-										status = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
-									}
-									else if ((item.Type == "Thermostat") && (item.SubType == "SetPoint")) {
-										status = '<button class="btn btn-mini btn-info" type="button" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ',true);">' + item.Data + '\u00B0 ' + $scope.config.TempSign + '</button> ';
-									}
-									else if (item.SubType == "Smartwares") {
-										status = item.Data + '\u00B0 ' + $scope.config.TempSign;
-										status += '<button class="btn btn-mini btn-info" type="button" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ',true);">' + $.t("Set") + '</button> ';
-									}
-									else if ((item.SubType == "Thermostat Mode") || (item.SubType == "Thermostat Fan Mode")) {
-										status = item.Data;
-									}
-
-									var bHaveReturnUsage = false;
-									if (typeof item.CounterDeliv != 'undefined') {
-										if (item.UsageDeliv.charAt(0) != 0) {
-											bHaveReturnUsage = true;
-										}
-									}
-
-									if (typeof item.Usage != 'undefined') {
-										if ($scope.config.DashboardType == 0) {
-											status += '<br>' + $.t("Actual") + ': ' + item.Usage;
-										}
-										else {
-											if (!bHaveReturnUsage) {
-												status += ", A: " + item.Usage;
+									)
+								) {
+									totdevices += 1;
+									if (jj == 0) {
+										//first time
+										htmlcontent += '<section class="dashCategory" id="dashUtility">';
+										// mobile util start
+										if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+											if (htmlcontent != "") {
+												htmlcontent += '<br>';
 											}
+											htmlcontent += '\t    <table class="mobileitem">\n';
+											htmlcontent += '\t    <thead>\n';
+											htmlcontent += '\t    <tr>\n';
+											htmlcontent += '\t    		<th>' + $.t('Utility Sensors') + '</th>\n';
+											htmlcontent += '\t    		<th style="text-align:right"><a id="cUtility" href="javascript:SwitchLayout(\'Utility\')"><img src="images/next.png"></a></th>\n';
+											htmlcontent += '\t    </tr>\n';
+											htmlcontent += '\t    </thead>\n';
+										}
+										else {
+											htmlcontent += '<h2>' + $.t('Utility Sensors') + ':</h2>\n';
 										}
 									}
+									if (jj % rowItems == 0) {
+										//add devider
+										if (bHaveAddedDivider == true) {
+											//close previous devider
+											htmlcontent += '</div>\n';
+										}
+										htmlcontent += '<div class="row divider">\n';
+										bHaveAddedDivider = true;
+									}
+									var xhtm = "";
+									if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+										var vname = item.Name;
+										if (typeof item.Counter != 'undefined') {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if ((item.Type == "Current") || (item.Type == "Current/Energy")) {
+											vname = '<img src="images/next.png" onclick="ShowCurrentLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\', ' + item.displaytype + ');" height="16" width="16">' + " " + item.Name;
+										}
+										else if ((item.Type == "Energy") || (item.SubType == "kWh") || (item.SubType == "Power")) {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.Type == "Air Quality") {
+											vname = '<img src="images/next.png" onclick="ShowAirQualityLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
+										}
+										else if (item.SubType == "Percentage") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Custom Sensor") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '48_On.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Fan") {
+											vname = '<img src="images/next.png" class="fanicon" onclick="ShowFanLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="16" width="16">' + " " + item.Name;
+										}
+										else if (item.Type == "Lux") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.Type == "Usage") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Soil Moisture") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Distance") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if ((item.SubType == "Voltage") || (item.SubType == "Current") || (item.SubType == "A/D")) {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Text" || item.SubType == "Alert") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Pressure") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if ((item.Type == "Setpoint") && (item.SubType == "SetPoint")) {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Smartwares") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Sound Level") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
+										else if (item.SubType == "Waterflow") {
+											vname = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/next.png" height="16" width="16"></a>' + " " + item.Name;
+										}
 
-									if (typeof item.CounterDeliv != 'undefined') {
-										if (item.CounterDeliv != 0) {
+										var status = "";
+										if (typeof item.Counter != 'undefined') {
 											if ($scope.config.DashboardType == 0) {
-												status += '<br>' + $.t("Return") + ': ' + item.CounterDelivToday;
-												status += '<br>' + $.t("Actual") + ': -' + item.UsageDeliv;
+												if (item.SubType == "Managed Counter") {
+													status = item.Counter;
+												}
+												else {
+													status = $.t("Usage") + ': ' + item.CounterToday;
+												}
 											}
 											else {
-												status += '<br>R: T: ' + item.CounterDelivToday;
-												if (bHaveReturnUsage) {
-													status += ", A: ";
-													if (parseInt(item.UsageDeliv) > 0) {
-														status += "-";
+												if ((typeof item.CounterDeliv != 'undefined') && (item.CounterDeliv != 0)) {
+													status = 'U: T: ' + item.CounterToday;
+												} else {
+													if (item.SubType == "Managed Counter") {
+														status = item.Counter;
 													}
-													status += item.UsageDeliv;
+													else {
+														status = 'T: ' + item.CounterToday;
+													}
 												}
 											}
 										}
-									}
-									xhtm +=
-										'\t    <tr id="utility_' + item.idx + '">\n' +
-										'\t      <td id="name" class="name">' + vname + '</td>\n' +
-										'\t      <td id="status" class="status"><span>' + status + '</span></td>\n' +
-										'\t    </tr>\n';
-								}
-								// end of mobile utilities
-								else {
-									if ($scope.config.DashboardType == 0) {
-										xhtm = '\t<div class="span4 movable" id="utility_' + item.idx + '">\n';
-									}
-									else if ($scope.config.DashboardType == 1) {
-										xhtm = '\t<div class="span3 movable" id="utility_' + item.idx + '">\n';
-									}
-									/* generate item classes.  */
+										else if (item.Type == "Current") {
+											status = item.Data;
+										}
+										else if (
+											(item.Type == "Energy") ||
+											(item.Type == "Current/Energy") ||
+											(item.Type == "Power") ||
+											(item.SubType == "kWh") ||
+											(item.Type == "Air Quality") ||
+											(item.Type == "Lux") ||
+											(item.Type == "Weight") ||
+											(item.Type == "Usage") ||
+											(item.SubType == "Percentage") ||
+											(item.SubType == "Fan") ||
+											(item.SubType == "Soil Moisture") ||
+											(item.SubType == "Leaf Wetness") ||
+											(item.SubType == "Voltage") ||
+											(item.SubType == "Distance") ||
+											(item.SubType == "Current") ||
+											(item.SubType == "Pressure") ||
+											(item.SubType == "A/D") ||
+											(item.SubType == "Waterflow") ||
+											(item.SubType == "Sound Level") ||
+											(item.SubType == "Custom Sensor")
+										) {
+											if (typeof item.CounterToday != 'undefined') {
+												status += 'T: ' + item.CounterToday;
+											}
+											else {
+												status = item.Data;
+											}
+										}
+										else if (item.SubType == "Alert") {
+											var aLevel = item.Level;
+											if (aLevel > 4) aLevel = 4;
+											status = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2') + ' <img src="images/Alert48_' + aLevel + '.png" height="16" width="16">';
+										}
+										else if (item.SubType == "Text") {
+											status = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+										}
+										else if ((item.Type == "Setpoint") && (item.SubType == "SetPoint")) {
+											status = '<button class="btn btn-mini btn-info" type="button" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ',true, ' + item.step + ', ' + item.min + ', ' + item.max + ');">' + item.Data + ' ' + item.vunit + '</button> ';
+										}
+										else if (item.SubType == "Smartwares") {
+											status = item.Data + '\u00B0 ' + $scope.config.TempSign;
+											status += '<button class="btn btn-mini btn-info" type="button" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ',true, ' + item.step + ', ' + item.min + ', ' + item.max + ');">' + $.t("Set") + '</button> ';
+										}
 
-									/* type of device */
-									var itemtypeclass = "";
-									var itemsubtypeclass = "";
-									if (typeof item.Type != 'undefined') {
-										var itemtypeclass = ' ' + item.Type.slice(0);
-										itemtypeclass = itemtypeclass.replace(/\s/g, '');
-										itemtypeclass = itemtypeclass.replace(/\\/g, '');
-										itemtypeclass = itemtypeclass.replace(/\//g, '');
+										var bHaveReturnUsage = false;
+										if (typeof item.CounterDeliv != 'undefined') {
+											if (item.UsageDeliv.charAt(0) != 0) {
+												bHaveReturnUsage = true;
+											}
+										}
+
+										if (typeof item.Usage != 'undefined') {
+											if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv == 'undefined')) {
+												if ($scope.config.DashboardType == 0) {
+													status += '<br>' + $.t("Actual") + ': ' + item.Usage;
+												}
+												else {
+													if (!bHaveReturnUsage) {
+														status += ", A: " + item.Usage;
+													}
+												}
+											} else {
+												if (parseInt(item.Usage) > 0) {
+													if ($scope.config.DashboardType == 0) {
+														status += '<br>' + $.t("Actual") + ': ' + item.Usage;
+													}
+													else {
+														if (!bHaveReturnUsage) {
+															status += ", A: " + item.Usage;
+														}
+													}
+												}
+											}
+										}
+
+										if (typeof item.CounterDeliv != 'undefined') {
+											if (item.CounterDeliv != 0) {
+												if ($scope.config.DashboardType == 0) {
+													status += '<br>' + $.t("Return") + ': ' + item.CounterDelivToday;
+													if (parseInt(item.UsageDeliv) > 0) {
+														status += '<br>' + $.t("Actual") + ': ';
+														status += "-" + item.UsageDeliv;
+													}
+													
+												}
+												else {
+													if (parseInt(item.Usage) > 0) {
+														status += ", A: ";
+														status += item.Usage;
+													}
+													status += '<br>R: T: ' + item.CounterDelivToday;
+													if (bHaveReturnUsage) {
+														if (parseInt(item.UsageDeliv) > 0) {
+															status += ", A: ";
+															status += "-" + item.UsageDeliv;
+														}
+													}
+												}
+											}
+										}
+										xhtm +=
+											'\t    <tr id="utility_' + item.idx + '">\n' +
+											'\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + vname + '</td>\n' +
+											'\t      <td id="status" class="status"><span>' + status + '</span></td>\n' +
+											'\t    </tr>\n';
 									}
-									if (typeof item.SubType != 'undefined') {
-										var itemsubtypeclass = item.SubType.split(' ').join('');
-										itemsubtypeclass = itemsubtypeclass.replace(/\\/g, '');
-										itemsubtypeclass = itemsubtypeclass.replace(/\//g, '');
-									}
-									/* generate bigtext html */
-									var bigtexthtml = "";
-									bigtexthtml += '<span class="value1">';
-									if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv == 'undefined')) {
-										bigtexthtml += item.Usage;
-									}
-									else if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv != 'undefined')) {
-										if (parseInt(item.Usage) > 0) {
+									// end of mobile utilities
+									else {
+										if ($scope.config.DashboardType == 0) {
+											xhtm = '\t<div class="span4 movable" id="utility_' + item.idx + '">\n';
+										}
+										else if ($scope.config.DashboardType == 1) {
+											xhtm = '\t<div class="span3 movable" id="utility_' + item.idx + '">\n';
+										}
+										/* generate item classes.  */
+
+										/* type of device */
+										var itemtypeclass = "";
+										var itemsubtypeclass = "";
+										if (typeof item.Type != 'undefined') {
+											var itemtypeclass = ' ' + item.Type.slice(0);
+											itemtypeclass = itemtypeclass.replace(/\s/g, '');
+											itemtypeclass = itemtypeclass.replace(/\\/g, '');
+											itemtypeclass = itemtypeclass.replace(/\//g, '');
+										}
+										if (typeof item.SubType != 'undefined') {
+											var itemsubtypeclass = item.SubType.split(' ').join('');
+											itemsubtypeclass = itemsubtypeclass.replace(/\\/g, '');
+											itemsubtypeclass = itemsubtypeclass.replace(/\//g, '');
+										}
+										/* generate bigtext html */
+										var bigtexthtml = "";
+										bigtexthtml += '<span class="value1">';
+										if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv == 'undefined')) {
 											bigtexthtml += item.Usage;
 										}
-										else if (parseInt(item.UsageDeliv) > 0) {
-											bigtexthtml += "-" + item.UsageDeliv;
+										else if ((typeof item.Usage != 'undefined') && (typeof item.UsageDeliv != 'undefined')) {
+											if ((item.UsageDeliv.charAt(0) == 0) || (parseInt(item.Usage) != 0)) {
+												bigtexthtml += item.Usage;
+											}
+											if (item.UsageDeliv.charAt(0) != 0) {
+												if (parseInt(item.Usage) > 0) {
+													bigtexthtml += ', ';
+												}
+												bigtexthtml += '-' + item.UsageDeliv;
+											}
 										}
-										else {
-											bigtexthtml += item.Usage;
+										else if (
+											(item.SubType == "Gas") ||
+											(item.SubType == "RFXMeter counter") ||
+											(item.SubType == "Counter Incremental")
+										) {
+											bigtexthtml += item.CounterToday;
 										}
-									}
-									else if (
-										(item.SubType == "Gas") ||
-										(item.SubType == "RFXMeter counter") ||
-										(item.SubType == "Counter Incremental")
-									) {
-										bigtexthtml += item.CounterToday;
-									}
-									else if (item.SubType == "Managed Counter") {
-										bigtexthtml += item.Counter;
-									}
-									else if (
-										(item.Type == "Air Quality") ||
-										(item.Type == "Lux") ||
-										(item.Type == "Weight") ||
-										(item.Type == "Usage") ||
-										(item.SubType == "Percentage") ||
-										(item.SubType == "Fan") ||
-										(item.SubType == "Soil Moisture") ||
-										(item.SubType == "Leaf Wetness") ||
-										(item.SubType == "Voltage") ||
-										(item.SubType == "Distance") ||
-										(item.SubType == "Current") ||
-										(item.SubType == "Pressure") ||
-										(item.SubType == "A/D") ||
-										(item.SubType == "Sound Level") ||
-										(item.SubType == "Waterflow") ||
-										(item.Type == "Current") ||
-										(item.SubType == "Custom Sensor")
-									) {
-										bigtexthtml += item.Data;
-									}
-									else if ((item.Type == "Thermostat") && (item.SubType == "SetPoint")) {
-										bigtexthtml += item.Data + '\u00B0 ' + $scope.config.TempSign;
-									}
-									else if (item.SubType == "Smartwares") {
-										bigtexthtml += item.Data + '\u00B0 ' + $scope.config.TempSign;
-									}
-									bigtexthtml += '</span>';
+										else if (item.SubType == "Managed Counter") {
+											bigtexthtml += item.Counter;
+										}
+										else if (
+											(item.Type == "Air Quality") ||
+											(item.Type == "Lux") ||
+											(item.Type == "Weight") ||
+											(item.Type == "Usage") ||
+											(item.SubType == "Percentage") ||
+											(item.SubType == "Fan") ||
+											(item.SubType == "Soil Moisture") ||
+											(item.SubType == "Leaf Wetness") ||
+											(item.SubType == "Voltage") ||
+											(item.SubType == "Distance") ||
+											(item.SubType == "Current") ||
+											(item.SubType == "Pressure") ||
+											(item.SubType == "A/D") ||
+											(item.SubType == "Sound Level") ||
+											(item.SubType == "Waterflow") ||
+											(item.Type == "Current") ||
+											(item.SubType == "Custom Sensor")
+										) {
+											bigtexthtml += item.Data;
+										}
+										else if ((item.Type == "Setpoint") && (item.SubType == "SetPoint")) {
+											bigtexthtml += item.Data + ' ' + item.vunit;
+										}
+										else if (item.SubType == "Smartwares") {
+											bigtexthtml += item.Data + '\u00B0 ' + $scope.config.TempSign;
+										}
+										bigtexthtml += '</span>';
 
-									/*  generate image and status html  */
-									var statushtml = "";
-									var imagehtml = '<img src="images/';
+										/*  generate image and status html  */
+										var statushtml = "";
+										var imagehtml = '<img src="images/';
 
-									if (typeof item.Counter != 'undefined') {
-										if ((item.Type == "RFXMeter") || (item.Type == "YouLess Meter") || (item.SubType == "Counter Incremental") || (item.SubType == "Managed Counter")) {
-											if (item.SwitchTypeVal == 1) {
-												item.Image = (item.CustomImage == 0) ? 'Gas48.png' : item.Image + '48_On.png';
-												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+										if (typeof item.Counter != 'undefined') {
+											if ((item.Type == "RFXMeter") || (item.Type == "YouLess Meter") || (item.SubType == "Counter Incremental") || (item.SubType == "Managed Counter")) {
+												if (item.SwitchTypeVal == 1) {
+													item.Image = (item.CustomImage == 0) ? 'Gas48.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
+												else if (item.SwitchTypeVal == 2) {
+													item.Image = (item.CustomImage == 0) ? 'Water48_On.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
+												else if (item.SwitchTypeVal == 3) {
+													item.Image = (item.CustomImage == 0) ? 'Counter48.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
+												else if (item.SwitchTypeVal == 4) {
+													item.Image = (item.CustomImage == 0) ? 'PV48.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
+												else {
+													item.Image = (item.CustomImage == 0) ? 'Counter48.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
 											}
-											else if (item.SwitchTypeVal == 2) {
-												item.Image = (item.CustomImage == 0) ? 'Water48_On.png' : item.Image + '48_On.png';
-												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											else {
+												if ((item.Type == "P1 Smart Meter") && (item.SubType == "Gas")) {
+													item.Image = (item.CustomImage == 0) ? 'Gas48.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
+												else {
+													item.Image = (item.CustomImage == 0) ? 'Counter48.png' : item.Image + '48_On.png';
+													imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+												}
 											}
-											else if (item.SwitchTypeVal == 3) {
-												item.Image = (item.CustomImage == 0) ? 'Counter48.png' : item.Image + '48_On.png';
-												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											if (
+												(item.SubType == "RFXMeter counter") ||
+												(item.SubType == "Counter Incremental")
+											) {
+												statushtml = item.Counter;
 											}
-											else if (item.SwitchTypeVal == 4) {
+											else if ((item.SubType != "Gas") && (item.SubType != "Managed Counter")) { // this is weird..
+												statushtml = $.t("Usage") + ': ' + item.CounterToday;
+											}
+											else if ((item.SubType == "Gas") || (item.SubType == "RFXMeter counter")) { // added this to fill the status value. If it's the same as the bigtext, then it won't be shown again.
+												statushtml += "";
+											} else {
+												statushtml = "";
+											}
+										}
+										else if ((item.Type == "Energy") || (item.Type == "Power") || (item.SubType == "kWh")) {
+											if (((item.Type == "Energy") || (item.Type == "Power") || (item.SubType == "kWh")) && (item.SwitchTypeVal == 4)) {
 												item.Image = (item.CustomImage == 0) ? 'PV48.png' : item.Image + '48_On.png';
 												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
 											}
 											else {
-												item.Image = (item.CustomImage == 0) ? 'Counter48.png' : item.Image + '48_On.png';
+												item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
 												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
 											}
-										}
-										else {
-											if ((item.Type == "P1 Smart Meter") && (item.SubType == "Gas")) {
-												item.Image = (item.CustomImage == 0) ? 'Gas48.png' : item.Image + '48_On.png';
-												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-											}
-											else {
-												item.Image = (item.CustomImage == 0) ? 'Counter48.png' : item.Image + '48_On.png';
-												imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-											}
-										}
-										if (
-											(item.SubType == "RFXMeter counter") ||
-											(item.SubType == "Counter Incremental")
-										) {
-											statushtml = item.Counter;
-										}
-										else if ((item.SubType != "Gas") && (item.SubType != "Managed Counter")) { // this is weird..
-											statushtml = '' + $.t("Usage") + ': ' + item.CounterToday;
-										}
-										else if ((item.SubType == "Gas") || (item.SubType == "RFXMeter counter")) { // added this to fill the status value. If it's the same as the bigtext, then it won't be shown again.
-											statushtml += "";
-										} else {
 											statushtml = "";
 										}
-									}
-									else if ((item.Type == "Energy") || (item.Type == "Power") || (item.SubType == "kWh")) {
-										if (((item.Type == "Energy") || (item.Type == "Power") || (item.SubType == "kWh")) && (item.SwitchTypeVal == 4)) {
-											item.Image = (item.CustomImage == 0) ? 'PV48.png' : item.Image + '48_On.png';
-											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+										else if ((item.Type == "Current") || (item.Type == "Current/Energy")) {
+											item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
+											imagehtml += item.Image + '" class="lcursor" onclick="ShowCurrentLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\', ' + item.displaytype + ');" height="40" width="40"></td>\n';
+											statushtml = "";
 										}
-										else {
+										else if (item.Type == "Air Quality") {
+											item.Image = (item.CustomImage == 0) ? 'air48.png' : item.Image + '48_On.png';
+											imagehtml += item.Image + '" class="lcursor" onclick="ShowAirQualityLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n';
+											statushtml = item.Quality;
+										}
+										else if (item.SubType == "Percentage") {
+											item.Image = (item.CustomImage == 0) ? 'Percentage48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Fan") {
+											imagehtml += 'Fan48_On.png" class="lcursor fanicon" onclick="ShowFanLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n';
+											statushtml = "";
+										}
+										else if (item.Type == "Lux") {
+											item.Image = (item.CustomImage == 0) ? 'lux48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.Type == "Weight") {
+											item.Image = (item.CustomImage == 0) ? 'scale48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.Type == "Usage") {
 											item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
 											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
 										}
-										statushtml = "";
-									}
-									else if ((item.Type == "Current") || (item.Type == "Current/Energy")) {
-										item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
-										imagehtml += item.Image + '" class="lcursor" onclick="ShowCurrentLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\', ' + item.displaytype + ');" height="40" width="40"></td>\n';
-										statushtml = "";
-									}
-									else if (item.Type == "Air Quality") {
-										item.Image = (item.CustomImage == 0) ? 'air48.png' : item.Image + '48_On.png';
-										imagehtml += item.Image + '" class="lcursor" onclick="ShowAirQualityLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n';
-										statushtml = item.Quality;
-									}
-									else if (item.SubType == "Percentage") {
-										item.Image = (item.CustomImage == 0) ? 'Percentage48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Fan") {
-										imagehtml += 'Fan48_On.png" class="lcursor fanicon" onclick="ShowFanLog(\'#dashcontent\',\'ShowFavorites\',' + item.idx + ',\'' + escape(item.Name) + '\');" height="40" width="40"></td>\n';
-										statushtml = "";
-									}
-									else if (item.Type == "Lux") {
-										item.Image = (item.CustomImage == 0) ? 'lux48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.Type == "Weight") {
-										item.Image = (item.CustomImage == 0) ? 'scale48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.Type == "Usage") {
-										item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Soil Moisture") {
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/moisture48.png" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Custom Sensor") {
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '48_On.png" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Waterflow") {
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/moisture48.png" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Leaf Wetness") {
-										item.Image = (item.CustomImage == 0) ? 'leaf48.png' : item.Image + '48_On.png';
-										imagehtml += item.Image + '" height="40" width="40"></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Distance") {
-										item.Image = (item.CustomImage == 0) ? 'visibility48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if ((item.SubType == "Voltage") || (item.SubType == "Current") || (item.SubType == "A/D")) {
-										item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Text") {
-										var logLink = '#/Devices/' + item.idx + '/Log';
-										item.Image = (item.CustomImage == 0) ? 'text48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="' + logLink + '"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
-									}
-									else if (item.SubType == "Alert") {
-										var logLink = '#/Devices/' + item.idx + '/Log';
+										else if (item.SubType == "Soil Moisture") {
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/moisture48.png" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Custom Sensor") {
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '48_On.png" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Waterflow") {
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/moisture48.png" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Leaf Wetness") {
+											item.Image = (item.CustomImage == 0) ? 'leaf48.png' : item.Image + '48_On.png';
+											imagehtml += item.Image + '" height="40" width="40"></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Distance") {
+											item.Image = (item.CustomImage == 0) ? 'visibility48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if ((item.SubType == "Voltage") || (item.SubType == "Current") || (item.SubType == "A/D")) {
+											item.Image = (item.CustomImage == 0) ? 'current48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Text") {
+											var logLink = '#/Devices/' + item.idx + '/Log';
+											item.Image = (item.CustomImage == 0) ? 'text48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="' + logLink + '"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+										}
+										else if (item.SubType == "Alert") {
+											var logLink = '#/Devices/' + item.idx + '/Log';
 
-										imagehtml = '<a href="' + logLink + '"><img src="images/Alert48_' + item.Level + '.png" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
-									}
-									else if (item.SubType == "Pressure") {
-										item.Image = (item.CustomImage == 0) ? 'gauge48.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
-									else if ((item.Type == "Thermostat") && (item.SubType == "SetPoint")) {
-										imagehtml += 'override.png" class="lcursor" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ');" height="40" width="40"></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Smartwares") {
-										imagehtml += 'override.png" class="lcursor" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ');" height="40" width="40"></td>\n';
-										statushtml = item.Data + '\u00B0 ' + $scope.config.TempSign;
-									}
-									else if ((item.SubType == "Thermostat Mode") || (item.SubType == "Thermostat Fan Mode")) {
-										imagehtml += 'mode48.png" height="40" width="40"></td>\n';
-										statushtml = "";
-									}
-									else if (item.SubType == "Sound Level") {
-										item.Image = (item.CustomImage == 0) ? 'Speaker48_On.png' : item.Image + '48_On.png';
-										imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
-										statushtml = "";
-									}
+											imagehtml = '<a href="' + logLink + '"><img src="images/Alert48_' + item.Level + '.png" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = item.Data.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+										}
+										else if (item.SubType == "Pressure") {
+											item.Image = (item.CustomImage == 0) ? 'gauge48.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
+										else if ((item.Type == "Setpoint") && (item.SubType == "SetPoint")) {
+											imagehtml += (item.CustomImage == 0)  ? 'override.png' : item.Image + '48_On.png';
+											imagehtml += '" class="lcursor" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ', false, ' + item.step + ', ' + item.min + ', ' + item.max + ');" height="40" width="40"></td>\n';
+											statushtml = "";
+										}
+										else if (item.SubType == "Smartwares") {
+											imagehtml += 'override.png" class="lcursor" onclick="ShowSetpointPopup(event, ' + item.idx + ', ' + item.Protected + ', ' + item.Data + ', false, ' + item.step + ', ' + item.min + ', ' + item.max + ');" height="40" width="40"></td>\n';
+											statushtml = item.Data + '\u00B0 ' + $scope.config.TempSign;
+										}
+										else if (item.SubType == "Sound Level") {
+											item.Image = (item.CustomImage == 0) ? 'Speaker48_On.png' : item.Image + '48_On.png';
+											imagehtml = '<a href="#/Devices/' + item.idx + '/Log"><img src="images/' + item.Image + '" class="lcursor" height="40" width="40"></a></td>\n';
+											statushtml = "";
+										}
 
-									if (typeof item.Usage != 'undefined') {
-										if (item.Type != "P1 Smart Meter") {
-											if ($scope.config.DashboardType == 0) {
-												//status+='<br>' + $.t("Actual") + ': ' + item.Usage;
-												if (typeof item.CounterToday != 'undefined') {
-													statushtml += $.t("Today") + ': ' + item.CounterToday;
+										if (typeof item.Usage != 'undefined') {
+											if (item.Type != "P1 Smart Meter") {
+												if ($scope.config.DashboardType == 0) {
+													//status+='<br>' + $.t("Actual") + ': ' + item.Usage;
+													if (typeof item.CounterToday != 'undefined') {
+														statushtml += $.t("Today") + ': ' + item.CounterToday;
+													}
 												}
-											}
-											else {
-												//status+=", A: " + item.Usage;
-												if (typeof item.CounterToday != 'undefined') {
-													statushtml += 'T: ' + item.CounterToday;
+												else {
+													//status+=", A: " + item.Usage;
+													if (typeof item.CounterToday != 'undefined') {
+														statushtml += 'T: ' + item.CounterToday;
+													}
 												}
 											}
 										}
-									}
-									if (typeof item.CounterDeliv != 'undefined') {
-										if (item.CounterDeliv != 0) {
-											statushtml += '</span><span class="value2">';
-											statushtml += '<br>' + $.t("Return") + ': ' + item.CounterDelivToday;
+										if (typeof item.CounterDeliv != 'undefined') {
+											if (item.CounterDeliv != 0) {
+												statushtml += '</span><span class="value2">';
+												statushtml += '<br>' + $.t("Return") + ': ' + item.CounterDelivToday;
+											}
 										}
-									}
-									statushtml = '<span class="value1">' + statushtml + '</span>';
+										statushtml = '<span class="value1">' + statushtml + '</span>';
 
-									// generate protected/timeout/lowbattery status
-									var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
-									/* checking the generated html for even more classes, then fill in the HTML */
-									var count = (statushtml.match(/<span/g) || []).length;//$(statushtml).find("span").length;
-									// if ($(escape(statushtml)).text().length != $(escape(bigtexthtml)).text().length){
-									if (statushtml.length != bigtexthtml.length) {
-										xhtm += '\t  <div id="bstatus" class="item ' + itemtypeclass + ' ' + itemsubtypeclass + ' ' + backgroundClass + ' withstatus statuscount' + count + '">\n';
-									} else {
-										xhtm += '\t  <div id="bstatus" class="item ' + itemtypeclass + ' ' + itemsubtypeclass + ' ' + backgroundClass + ' withoutstatus statuscount' + count + '">\n';
+										// generate protected/timeout/lowbattery status
+										var backgroundClass = $rootScope.GetItemBackgroundStatus(item);
+										/* checking the generated html for even more classes, then fill in the HTML */
+										var count = (statushtml.match(/<span/g) || []).length;//$(statushtml).find("span").length;
+										// if ($(escape(statushtml)).text().length != $(escape(bigtexthtml)).text().length){
+										if (statushtml.length != bigtexthtml.length) {
+											xhtm += '\t  <div id="bstatus" class="item itemBlock ' + itemtypeclass + ' ' + itemsubtypeclass + ' ' + backgroundClass + ' withstatus statuscount' + count + '">\n';
+										} else {
+											xhtm += '\t  <div id="bstatus" class="item itemBlock ' + itemtypeclass + ' ' + itemsubtypeclass + ' ' + backgroundClass + ' withoutstatus statuscount' + count + '">\n';
+										}
+
+										xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
+										xhtm += '\t    <tr">\n';
+										xhtm += '\t      <td id="name" class="name item-name" data-idx="'+item.idx+'" data-desc="'+item.Description.replace('"',"'")+'">' + item.Name + '</td>\n';
+										xhtm += '\t      <td id="bigtext" class="bigtext"><span class="wrapper">' + bigtexthtml + '</span></td>\n';
+										xhtm += '\t      <td id="img" class="img img1">' + imagehtml + '</td>';
+										xhtm += '\t      <td id="status" class="status"><span class="wrapper">' + statushtml + '</span></td>\n' +
+											'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
+											'\t    </tr>\n' +
+											'\t    </table>\n' +
+											'\t  </div>\n' +
+											'\t</div>\n';
 									}
 
-									xhtm += '\t    <table id="itemtablesmall" class="itemtablesmall" border="0" cellpadding="0" cellspacing="0">\n';
-									xhtm += '\t    <tr">\n';
-									xhtm += '\t      <td id="name" class="name">' + item.Name + '</td>\n';
-									xhtm += '\t      <td id="bigtext" class="bigtext"><span class="wrapper">' + bigtexthtml + '</span></td>\n';
-									xhtm += '\t      <td id="img" class="img img1">' + imagehtml + '</td>';
-									xhtm += '\t      <td id="status" class="status"><span class="wrapper">' + statushtml + '</span></td>\n' +
-										'\t      <td id="lastupdate" class="lastupdate"><span>' + item.LastUpdate + '</span></td>\n' +
-										'\t    </tr>\n' +
-										'\t    </table>\n' +
-										'\t  </div>\n' +
-										'\t</div>\n';
+									htmlcontent += xhtm;
+									jj += 1;
 								}
-
-								htmlcontent += xhtm;
-								jj += 1;
+							}); //Utility devices
+							if (bHaveAddedDivider == true) {
+								//close previous divider
+								htmlcontent += '</div>\n';
 							}
-						}); //Utility devices
-						if (bHaveAddedDivider == true) {
-							//close previous divider
-							htmlcontent += '</div>\n';
-						}
-						if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
-							htmlcontent += '\t    </table>\n';
-						}
-						if (jj > 0) {
-							htmlcontent += '</section>';
+							if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
+								htmlcontent += '\t    </table>\n';
+							}
+							if (jj > 0) {
+								htmlcontent += '</section>';
+							}
 						}
 					}
 				}
@@ -3701,57 +3626,9 @@ define(['app', 'livesocket'], function (app) {
 			}
 
 			var suntext = "";
-			if (bShowRoomplan == false) {
-				suntext =
-					'<div class="beforebannav">' +
-					'\t<table border="0" cellpadding="0" cellspacing="0" width="100%">\n' +
-					'\t<tr>\n' +
-					'\t  <td align="left" valign="top" id="timesun"></td>\n' +
-					'\t</tr>\n' +
-					'\t</table>\n' +
-					'\t</div>\n';
-			}
-			else {
-				suntext =
-					'<div class="beforebannav">' +
-					'<table "border="0" cellpadding="0" cellspacing="0" width="100%">' +
-					'<tr>' +
-					'<td align="left" valign="top" id="timesun"></td>' +
-					'<td align="right" valign="top">' +
-					'<span data-i18n="Room">Room</span>:&nbsp;<select id="comboroom" class="combobox ui-corner-all">' +
-					'<option value="0" data-i18n="All">All</option>' +
-					'</select>' +
-					'</td>' +
-					'</tr>' +
-					'</table>' +
-					'</div>';
-			}
-
-
 			$element.html(suntext + htmlcontent + EvohomeAddJS());
 			$element.i18n();
-
-			if (bShowRoomplan == true) {
-				$.each($.RoomPlans, function (i, item) {
-					var option = $('<option />');
-					option.attr('value', item.idx).text(item.name);
-					$element.find("#comboroom").append(option);
-				});
-				if (typeof roomPlanId != 'undefined') {
-					$element.find("#comboroom").val(roomPlanId);
-				}
-				$element.find("#comboroom").change(function () {
-					var idx = $element.find("#comboroom option:selected").val();
-					window.myglobals.LastPlanSelected = idx;
-
-					$route.updateParams({
-						room: idx > 0 ? idx : undefined
-					});
-					$location.replace();
-					$scope.$apply();
-				});
-			}
-
+			WatchDescriptions();
 
 			// Store variables
 			var accordion_head = $('#dashcontent .accordion > li > a'),
@@ -3810,11 +3687,7 @@ define(['app', 'livesocket'], function (app) {
 						var TxtOff = "Off";
 						if (dtype == "blinds") {
 							TxtOn = "Open";
-							TxtOff = "Close";
-						}
-						else if (dtype == "blinds_inv") {
-							TxtOn = "Close";
-							TxtOff = "Open";
+							TxtOff = "Closed";
 						}
 						if (($scope.config.DashboardType == 2) || (window.myglobals.ismobile == true)) {
 							if (fPercentage == 0) {
@@ -3836,13 +3709,13 @@ define(['app', 'livesocket'], function (app) {
 								imgname = "Fireplace48_O"
 							if (fPercentage == 0) {
 								img = '<img src="images/' + imgname + 'ff.png" title="' + $.t("Turn On") + '" onclick="SwitchLight(' + idx + ',\'On\',' + isProtected + ');" class="lcursor" height="40" width="40">';
-								status = "Off";
+								status = fPercentage + " %";
 							}
 							else {
 								img = '<img src="images/' + imgname + 'n.png" title="' + $.t("Turn Off") + '" onclick="SwitchLight(' + idx + ',\'Off\',' + isProtected + ');" class="lcursor" height="40" width="40">';
 								status = fPercentage + " %";
 							}
-							if ((dtype != "blinds") && (dtype != "blinds_inv") && !isled) {
+							if ((dtype != "blinds") && !isled) {
 								if ($(id + " #img").html() != img) {
 									$(id + " #img").html(img);
 								}
@@ -3942,7 +3815,7 @@ define(['app', 'livesocket'], function (app) {
 			}).selectmenu('refresh');
 
 			if ($scope.config.AllowWidgetOrdering == true) {
-				if (permissions.hasPermission("Admin")) {
+				if (permissions.hasPermission("User")) {
 					if (window.myglobals.ismobileint == false) {
 						$element.find(".movable").draggable({
 							drag: function () {
@@ -4018,6 +3891,30 @@ define(['app', 'livesocket'], function (app) {
 			$scope.MakeGlobalConfig();
 			MobilePhoneDetection();
 			ShowFavorites();
+
+
+			//handles RoomPlans
+			var ctrl={};
+			ctrl.RoomPlans=$rootScope.GetRoomPlans();	
+			var roomPlanId = $routeParams.room || window.myglobals.LastPlanSelected;
+	
+			if (typeof roomPlanId != 'undefined') {
+				ctrl.roomSelected = roomPlanId;
+			}
+			ctrl.changeRoom = function () {
+				var idx = ctrl.roomSelected;
+				window.myglobals.LastPlanSelected = idx;
+	
+				$route.updateParams({
+						room: idx > 0 ? idx : undefined
+					});
+					$location.replace();
+					$scope.$apply();
+			};
+			$scope.ctrl=ctrl;
+
+
+			//WatchLiveSearch();
 
 			$scope.$on('device_update', function (event, deviceData) {
 				RefreshItem(deviceData);

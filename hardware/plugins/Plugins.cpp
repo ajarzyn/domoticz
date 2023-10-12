@@ -17,7 +17,6 @@
 #include "../../main/Logger.h"
 #include "../../main/SQLHelper.h"
 #include "../../main/mainworker.h"
-#include "../../main/localtime_r.h"
 #include "../../tinyxpath/tinyxml.h"
 
 #include "../../notifications/NotificationHelper.h"
@@ -1208,6 +1207,24 @@ namespace Plugins
 			// Update the path itself
 			PySys_SetPath((wchar_t *)sPath.c_str());
 
+			// Get reference to global 'Py_None' instance for comparisons
+			if (!Py_None)
+			{
+				PyNewRef		global_dict = PyDict_New();
+				PyNewRef		local_dict = PyDict_New();
+				PyNewRef		pCode = Py_CompileString("# Eval will return 'None'\n", "<domoticz>", Py_file_input);
+				if (pCode)
+				{
+					PyNewRef	pEval = PyEval_EvalCode(pCode, global_dict, local_dict);
+					Py_None = pEval;
+					Py_INCREF(Py_None);
+				}
+				else
+				{
+					Log(LOG_ERROR, "Failed to compile script to set global Py_None");
+				}
+			}
+
 			try
 			{
 				//
@@ -1264,25 +1281,6 @@ namespace Plugins
 				goto Error;
 			}
 			pModState->pPlugin = this;
-
-			// Get reference to global 'Py_None' instance for comparisons
-			if (!Py_None)
-			{
-				PyBorrowedRef	global_dict = PyModule_GetDict(m_PyModule);
-				PyNewRef		local_dict = PyDict_New();
-				PyNewRef		pCode = Py_CompileString("# Eval will return 'None'\n", "<domoticz>", Py_file_input);
-				if (pCode)
-				{
-					PyNewRef	pEval = PyEval_EvalCode(pCode, global_dict, local_dict);
-					Py_None = pEval;
-					Py_INCREF(Py_None);
-				}
-				else
-				{
-					Log(LOG_ERROR, "Failed to compile script to set global Py_None");
-				}
-			}
-
 
 			//	Add start command to message queue
 			MessagePlugin(new onStartCallback());
@@ -2659,11 +2657,8 @@ namespace Plugins
 					szTypeImage = "Contact48";
 					break;
 				case STYPE_Blinds:
-				case STYPE_BlindsInverted:
 				case STYPE_BlindsPercentage:
-				case STYPE_BlindsPercentageInverted:
 				case STYPE_BlindsPercentageWithStop:
-				case STYPE_BlindsPercentageInvertedWithStop:
 				case STYPE_VenetianBlindsUS:
 				case STYPE_VenetianBlindsEU:
 					szTypeImage = "blinds48";

@@ -3,7 +3,6 @@
 #include "../main/Logger.h"
 #include "../main/Helper.h"
 #include <iostream>
-#include "../main/localtime_r.h"
 #include "../main/mainworker.h"
 #include "../main/SQLHelper.h"
 #include "../main/json_helper.h"
@@ -103,6 +102,7 @@ void MQTT::StopMQTT()
 
 bool MQTT::StopHardware()
 {
+	on_going_down();
 	StopHeartbeatThread();
 	if (m_thread)
 	{
@@ -299,7 +299,7 @@ void MQTT::on_message(const struct mosquitto_message *message)
 			std::string switchcmd = root["switchcmd"].asString();
 			// if ((switchcmd != "On") && (switchcmd != "Off") && (switchcmd != "Toggle") && (switchcmd != "Set Level") && (switchcmd != "Stop"))
 			//	goto mqttinvaliddata;
-			int level = 0;
+			int level = -1;
 			if (!root["level"].empty())
 			{
 				if (root["level"].isString())
@@ -579,6 +579,11 @@ void MQTT::on_disconnect(int rc)
 	}
 }
 
+//called when hardware is stopped
+void MQTT::on_going_down()
+{
+}
+
 bool MQTT::ConnectInt()
 {
 	StopMQTT();
@@ -599,7 +604,7 @@ bool MQTT::ConnectIntEx()
 	Log(LOG_STATUS, "Connecting to %s:%d", m_szIPAddress.c_str(), m_usIPPort);
 
 	int rc;
-	int keepalive = 40;
+	int keepalive = 120;
 
 	if (
 		(bIsSecure)
@@ -727,6 +732,11 @@ void MQTT::SendHeartbeat()
 
 void MQTT::SendMessage(const std::string &Topic, const std::string &Message)
 {
+	SendMessageEx(Topic, Message, QOS, m_bRetain);
+}
+
+void MQTT::SendMessageEx(const std::string& Topic, const std::string& Message, int qos, bool retain)
+{
 	if (!m_IsConnected)
 	{
 		Log(LOG_STATUS, "Not Connected, failed to send message: %s", Message.c_str());
@@ -736,7 +746,7 @@ void MQTT::SendMessage(const std::string &Topic, const std::string &Message)
 		return;
 	try
 	{
-		publish(nullptr, Topic.c_str(), Message.size(), Message.c_str(), QOS, m_bRetain);
+		publish(nullptr, Topic.c_str(), static_cast<int>(Message.size()), Message.c_str(), qos, retain);
 	}
 	catch (...)
 	{
@@ -841,7 +851,11 @@ void MQTT::SendDeviceInfo(const int HwdID, const uint64_t DeviceRowIdx, const st
 		root["description"] = description;
 		root["LastUpdate"] = sLastUpdate;
 
-		if (switchType == STYPE_Dimmer)
+		if (
+			(switchType == STYPE_Dimmer)
+			|| (switchType == STYPE_BlindsPercentage)
+			|| (switchType == STYPE_BlindsPercentageWithStop)
+			)
 		{
 			root["Level"] = LastLevel;
 			if (dType == pTypeColorSwitch)

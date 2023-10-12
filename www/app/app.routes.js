@@ -209,6 +209,11 @@ define(['angularAMD', 'angular', 'angular-route'], function (angularAMD) {
                 controller: 'UsersController',
                 permission: 'Admin'
             }))
+            .when('/Applications', angularAMD.route({
+                templateUrl: 'views/applications.html',
+                controller: 'ApplicationsController',
+                permission: 'Admin'
+            }))
             .when('/UserVariables', angularAMD.route({
                 templateUrl: 'views/uservariables.html',
                 controller: 'UserVariablesController',
@@ -223,15 +228,14 @@ define(['angularAMD', 'angular', 'angular-route'], function (angularAMD) {
                 controller: 'WeatherController',
                 controllerAs: 'ctrl'
             }))
-            .when('/ZWaveTopology', angularAMD.route({
-                templateUrl: 'zwavetopology.html',
-                controller: 'ZWaveTopologyController',
-                permission: 'Admin'
-            }))
             .when('/Mobile', angularAMD.route({
                 templateUrl: 'views/mobile_notifications.html',
                 controller: 'MobileNotificationsController',
                 permission: 'Admin'
+            }))
+            .when('/MyProfile', angularAMD.route({
+                templateUrl: 'views/myprofile.html',
+                controller: 'MyProfileController'
             }))
             .when('/About', angularAMD.route({
                 templateUrl: 'views/about.html',
@@ -241,7 +245,8 @@ define(['angularAMD', 'angular', 'angular-route'], function (angularAMD) {
                     templateUrl: function (params) {
                         return 'templates/' + params.custompage + '.html';
                     },
-                    controller: 'DummyController'
+                    controller: 'DummyController',
+					permission: 'Viewer'
                 })
             )
             .otherwise({
